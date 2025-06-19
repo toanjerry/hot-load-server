@@ -1,0 +1,63 @@
+# Ignore hot-load directory contents
+base/hot-load/*
+!base/hot-load/.gitkeep
+
+# PHP related
+vendor/
+composer.phar
+composer.lock
+
+# Environment and configuration files
+*.env
+*.ini
+!base/db.ini.example
+!base/i18n.ini.example
+!base/whitelist.ini.example
+
+# IDE and editor files
+.idea/
+.vscode/
+*.sublime-workspace
+*.sublime-project
+.project
+.settings/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# Logs and cache
+*.log
+data/logs/
+data/service.logs/
+data/service.cache/
+*.cache
+
+# Dependencies and generated files
+node_modules/
+npm-debug.log
+yarn-debug.log
+yarn-error.log
+
+# Build and deployment files
+/deploy/certs/*
+!/deploy/certs/.gitkeep
+
+# Temporary files
+*.tmp
+*.temp
+*.bak
+*.backup
+
+# Private and sensitive files
+private.json
+*.pem
+*.key
+*.crt
+
+# Application specific
+/data/base/*
+!/data/base/.gitkeep
+
+# Keep directory structure
+!.gitkeep
