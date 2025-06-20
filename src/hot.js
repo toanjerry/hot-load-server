@@ -7,7 +7,7 @@ import { Routes } from './routes.js';
 import SocketServer from './socket.js';
 import FileWatcher from './watcher.js';
 import path from 'path';
-import {appendContent, injectScript, rewriteContent, minimizeContent} from './helper/file.js'
+import {appendContent, injectScript, rewriteContent, minimizeContent, getContent} from './helper/file.js'
 import {isOriginAllowed} from './helper/index.js'
 
 class HotServer {
@@ -114,43 +114,90 @@ class HotServer {
 		return this.config?.clients[client_id] || {}
 	}
 
-	injectClient(minimize = true) {
+	injectClient() {
 		const filePath = {
-			client: path.join(this.root, 'public', 'inject', 'client.js'),
-			index: path.join(this.root, 'public', 'inject', 'index.js'),
+			client: {
+				path: path.join(this.root, 'public', 'js', 'client.js'),
+				url: '/inject/client.js'
+			},
+			index: {
+				path: path.join(this.root, 'public', 'bundle', 'index.js'),
+				url: '/bundle/index.js'
+			},
+			index_min: {
+				path: path.join(this.root, 'public', 'bundle', 'index.min.js'),
+				url: '/bundle/index.min.js'
+			},
 		}
 
 		// build file index.js
-		rewriteContent(filePath.index, filePath.client)
-		appendContent(filePath.index, `HMR.connect('${this.config.host}',${this.config.port})`, false)
-		if (minimize) {
-			minimizeContent(filePath.index)
-		}
+		rewriteContent(filePath.index.path, filePath.client.path)
+		appendContent(filePath.index.path, `HMR.connect('${this.config.host}',${this.config.port})`, false)
+
+		// build file index.min.js
+		rewriteContent(filePath.index_min.path, filePath.index.path)
+		minimizeContent(filePath.index_min.path)
 
 		// inject JS code to client entry
 		for (const clientId in this.config.clients || {}) {
 			const config = this.config.clients[clientId]
-			let entry = config.entryPoint
-			if (!entry) {
+			// get all entry points
+			let entryPoints = config.entryPoints || ''
+			if (!entryPoints.length) {
 				continue
 			}
-			entry = path.join(this.root, entry);
+			if (typeof 'entryPoints' === 'string') {
+				entryPoints = [entryPoints]
+			}
 
-			if (config.injectCombine) {
+			// get files inject
+			let files_inject = []
+			if (config?.inject?.minimize) {
+				files_inject.push('index_min')
+			} else {
+				files_inject.push('index')
+			}
+
+			if (config.engine) {
 				// cache engine file path
 				if (config.engine && !filePath[config.engine]) {
-					filePath[config.engine] = path.join(this.root, 'public', 'engine', `${config.engine}.js`)
+					filePath[config.engine] = { path: path.join(this.root, 'public', 'engine', `${config.engine}.js`) }
 				}
-
-				// inject all js to end file entry
-				['index', config.engine].every(f => appendContent(entry, filePath[f]))
-			} else {
-				if (entry.endsWith('.html')) {
-					injectScript(entry, `<script src="/inject/index.js" defer async></script>`)
-				} else {
-					appendContent(entry, filePath.index)
+				// add engine file to combine
+				if (config?.inject?.combine) {
+					files_inject.push(config.engine)
 				}
 			}
+
+			console.log(files_inject)
+			
+			// inject code to each entry point
+			entryPoints.forEach(entry => {
+				entry = path.join(this.root, entry);
+
+				if (config?.inject?.combine) {
+					let content = ''
+					// Try to append each file, break if appendContent returns false
+					files_inject.forEach(f => {
+						content += '\n'+getContent(filePath[f].path)
+					})
+	
+					if (entry.endsWith('.html')) {
+						injectScript(entry, `<script>${content}</script>`)
+					} else {
+						appendContent(entry, content)
+					}
+				} else {
+					files_inject.forEach(f => {
+						if (entry.endsWith('.html')) {
+							injectScript(entry, `<script src="${filePath[f].url}" defer async></script>`)
+						} else {
+							appendContent(entry, filePath[f].path)
+						}
+					})
+				}
+			})
+
 		}
 	}
 }

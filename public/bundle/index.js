@@ -155,12 +155,15 @@ const HMR = new function () {
 			this.opts.engine = 'default'
 		}
 
-		const engine = await import(`${this.server}/engine/${this.opts.engine}.js`)
-		if (!engine) {
-			console.error('HOT: error load engine')
+		if (!window.ClientEngine) {
+			const engine = await import(`${this.server}/engine/${this.opts.engine}.js`)
+			if (!engine) {
+				console.error('HOT: error load engine')
+			}
+	
+			window.ClientEngine = engine.default;
 		}
-
-		window.ClientEngine = engine.default;
+		
 		this.engine = new ClientEngine()
 		this.client.setOpts(this.engine.opts)
 
@@ -222,3 +225,4 @@ const HMR = new function () {
 		document.body.appendChild(overlay);
 	}
 };
+HMR.connect('localhost',3000)

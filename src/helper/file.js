@@ -41,18 +41,27 @@ export function rewriteContent (target, src, isPath = true) {
 	}
 }
 
-export function injectScript(path, scriptTag) {
+export function injectScript(path, script,) {
 	try {
 		if (fs.existsSync(path)) {
-			let html = getContent(path);
-			if (html.includes(scriptTag)) return;
+			let content = getContent(path);
 
-			if (html.includes('</body>')) {
-				html = html.replace('</body>', `\t${scriptTag}\n</body>`);
+			const isHTMLFile = content.includes('</body>')
+
+			// reset old inject
+			const regex = new RegExp(`[//<hotload>|<!--<hotload>-->][\\s\\S]*?[//</hotload>|<!--</hotload>-->]`, 'g');
+			content.replace(regex, '');
+
+			// inject new
+			if (isHTMLFile) {
+				script = `${startTag}\n${script}\n${endTag}`
+				content = content.replace('</body>', `${script}\n</body>`);
 			} else {
-				html += `\n\t${scriptTag}`;
+				script = `//<hotload>\n${script}\n//</hotload>}`
+				content += `\n${script}`;
 			}
-			fs.writeFileSync(path, html, 'utf8');
+
+			fs.writeFileSync(path, content, 'utf8');
 		}
 	} catch (err) {
 		console.error(`Failed to inject to ${path}:`, err);
