@@ -59,3 +59,4 @@ private.json
 !.gitkeep
 
 client.config.js
+hot.config.js
