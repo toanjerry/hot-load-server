@@ -23,20 +23,15 @@ router.get('/:file(*)', (req, res, next) => {
 
 // Export route configuration function
 export const Routes = (app, hot) => {
-    // Static routes
-    app.use('/', router);
-    
-    // Dynamic routes that need access to clients
-    app.get('/clients', (req, res) => {
-        const clientsList = Array.from(hot.ws.clients.values()).map(info => ({
-            app: info.app,
-            version: info.version,
-            url: info.url,
-            connectedAt: info.connectedAt
-        }));
+	// Static routes
+	app.use('/', router);
 
-        res.json(clientsList);
-    });
+	// Dynamic routes that need access to clients
+	app.get('/clients', (req, res) => {
+		const clientsList = Array.from(hot.ws.clients.values()).map(info => info);
+
+		res.json(clientsList);
+	});
 };
 
 export default router;

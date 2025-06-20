@@ -1,5 +1,5 @@
 {
-	"name": "hot-load-watcher",
+	"name": "hot-load",
 	"version": "1.0.0",
 	"description": "File change monitor for base folder",
 	"type": "module",
@@ -8,11 +8,13 @@
 		"setup": "npm install && cp .env.example .env",
 		"dev": "node server.js",
 		"start": "node server.js"
-	},"dependencies": {
+	},
+	"dependencies": {
 		"chokidar": "^3.5.3",
 		"cors": "^2.8.5",
 		"dotenv": "^16.3.1",
 		"express": "^4.18.2",
+		"terser": "^5.43.1",
 		"ws": "^8.13.0"
 	}
 }

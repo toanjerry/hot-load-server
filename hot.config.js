@@ -2,9 +2,7 @@ import dotenv from 'dotenv';
 import fs from 'fs';
 import path from 'path';
 
-import BaseResolver from './src/file-resolver/base.js';
-
-import EngineMap from './engine.config.js'
+import ClientConfig from './client.config.js'
 
 // Load environment variables
 dotenv.config();
@@ -26,7 +24,7 @@ const config = {
 	// file watcher config for chokidar
 	watch: {
 		cwd: path.resolve(process.cwd(), process.env.CWD),
-		files: ['**/*.js'],
+		files: ['**/*.js', '**/*.css', '**/*.html', '**/*.base', '**/*.tpl'],
 		ignored: [
 			'**/node_modules/**',
 			'**/.git/**',
@@ -39,7 +37,7 @@ const config = {
 			'account/**',
 			'api/**',
 			'databases/**',
-			'**/*.css',
+			// '**/*.css',
 			'**/*.php',
 			'**/*.md',
 			'**/*.ini',
@@ -52,12 +50,9 @@ const config = {
 		],
 		persistent: true,
 		ignoreInitial: true,
-		resolver: BaseResolver,
 	},
-	client: {
-		overlay: true,
-		engineMap: EngineMap
-	}
+	// clients config
+	clients: ClientConfig,
 };
 
 export default config;

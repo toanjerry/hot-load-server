@@ -1,7 +1,3 @@
-# Ignore hot-load directory contents
-base/hot-load/*
-!base/hot-load/.gitkeep
-
 # PHP related
 vendor/
 composer.phar
@@ -61,3 +57,5 @@ private.json
 
 # Keep directory structure
 !.gitkeep
+
+client.config.js

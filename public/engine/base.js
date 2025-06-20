@@ -3,7 +3,7 @@ export default function BaseEngine () {
 		reconnectInterval: 3000,
 	}
 
-	this.update = change => {
+	this.process = change => {
 		if (change.action === 'update-js') {
 			updateJS(change.js, change.file_id)
 		} else if (change.action === 'update-css') {

@@ -1,6 +1,6 @@
 import fs from 'fs';
 
-const BaseResolver = {
+const BaseEngine = {
 	name: "Base",
 	process: function (payload, hot) {
 		const cwd = hot.watch.cwd
@@ -23,13 +23,13 @@ const BaseResolver = {
 		}
 
 		const app = path.split(/[\\/]/)[0];
-		let apps = [app]
-		if (app === 'hrm' || app === 'me') {
-			apps = ['hrm', 'me']
+		const apps = [app]
+		if (app === 'hrm') {
+			apps.push('me')
 		}
 
 		hot.ws.broadcast(payload, apps)
 	}
 }
 
-export default BaseResolver
+export default BaseEngine

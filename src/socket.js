@@ -1,13 +1,15 @@
 import { WebSocketServer } from 'ws';
-import { isOriginAllowed } from './helper.js';
+import { isOriginAllowed } from './helper/index.js';
+
+import {clientByHost} from '../client.config.js'
 
 class SocketServer {
-	constructor(server, config) {
-		this.config = config;
+	constructor(hot) {
+		this.hot = hot
 		this.clients = new Map();
 
 		this.wss = new WebSocketServer({
-			server,
+			server: this.hot.server,
 			clientTracking: true,
 			verifyClient: this.verifyClient.bind(this)
 		});
@@ -20,30 +22,30 @@ class SocketServer {
 			return true;
 		}
 
-		return isOriginAllowed(origin, this.config.domains || [`${config.protocol}://${config.host}:${config.port}`]);
+		return isOriginAllowed(origin, this.hot.config.domains || [this.hot.domain]);
 	}
 
 	handleClientRegistration(ws, data) {
 		const info = {
-			id: data.id || '',
-			url: data.url || ''
+			app: data.app || '',
+			origin: data.origin,
+			domain: data.domain || '',
+			connectedAt: new Date()
 		};
 
 		this.clients.set(ws, info);
-		console.info(`Connected: ${data.id} - ${data.url}`);
 		
-		ws.send(JSON.stringify({ type: 'config', opts: this.config.client || {} }));
+		console.info(`Connected: ${data.app} - ${data.origin}`);
+		
+		// send config of client
+		const clientId = clientByHost(info.domain) || 'default'
+		ws.send(JSON.stringify({
+			type: 'config',
+			opts: this.hot.config?.clients[clientId] || {}
+		}));
 	}
 
 	handleClientDisconnection(ws) {
-		// const info = this.clients.get(ws);
-
-		// // if (info) {
-		// // 	console.log(`Disconnected: ${info.app} - ${info.url}`);
-		// // } else {
-		// // 	console.log(`Disconnected`);
-		// // }
-
 		this.clients.delete(ws);
 	}
 
@@ -69,13 +71,13 @@ class SocketServer {
 	}
 
 
-	broadcast(payload, ids = []) {
+	broadcast(payload, apps = []) {
 		payload = JSON.stringify(payload);
 
-		ids.push('hot')
+		apps.push('hot')
 
 		for (const [client, info] of this.clients) {
-			if (!ids.includes(info.id)) {
+			if (!apps.includes(info.app)) {
 				continue;
 			}
 

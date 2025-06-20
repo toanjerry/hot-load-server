@@ -1,17 +1,13 @@
 import chokidar from 'chokidar';
 
+import {clientByPath} from '../client.config.js'
+
 class FileWatcher {
-	constructor(config, hot) {
-		this.config = config;
-		this.cwd = config.cwd || process.cwd();
+	constructor(hot) {
 		this.hot = hot;
-		this.resolver = this.config.resolver || null
-		if (!this.resolver) {
-			return console.warn(`Missing resolver`);
-		}
-		if (!this.resolver.process) {
-			return console.warn(`Resolver ${this.resolver.name || ''} miss "process" function`);
-		}
+		this.config = hot.config.watch || {};
+		this.cwd = this.config.cwd || hot.root;
+		this.engines = {}
 	}
 
 	start() {
@@ -20,29 +16,52 @@ class FileWatcher {
 			.on('change', path => this.dispatchChange('change', path))
 			.on('unlink', path => this.dispatchChange('delete', path));
 
-		console.info(`Watching for changes in: ${this.config.cwd || '\\'}`);
+		console.info(`Watching for changes in: ${this.cwd || '\\'}`);
 
 		return this;
 	}
 
-	dispatchChange(event, path) {
+	async dispatchChange(event, path) {
 		const payload = {
 			type: 'change',
 			event,
 			path,
-			// time: new Date().toISOString()
+			time: new Date().toISOString()
 		}
 
-		if (path.startsWith('hot-load')) {
+		if (path.startsWith(this.hot.rootFolder)) {
 			if (this.hot.config.autoRestart) {
 				return this.hot.restart()
 			}
-
-			console.log(payload)
-			return;
 		}
-		
-		this.resolver.process(payload, this.hot)
+
+		const engine = await this.getEngine(path)
+		if (engine) {
+			engine.process(payload, this.hot)
+		}
+	}
+
+	async getEngine(path) {
+		const clientId = clientByPath(path, this.hot)
+		const clientConfig = this.hot.getClientConfig(clientId)
+		const file = clientConfig.engine || clientId
+
+		if (!this.engines[file]) {
+			this.engines[file] = await import(`./engine/${file}.js`).then(mod => mod.default || mod).catch(() => null)
+			console.info(`Engine "${file}" loaded`)
+		}
+
+		const engine = this.engines[file]
+		if (!engine) {
+			console.warn(`Cannot detect engine for file: ${path}`)
+			return
+		}
+		if (!engine.process) {
+			console.warn(`Engine ${engine.name || ''} for path ${path} miss "process" function`);
+			return
+		}
+
+		return engine
 	}
 
 	stop() {

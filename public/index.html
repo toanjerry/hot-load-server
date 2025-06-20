@@ -5,45 +5,15 @@
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<title>File Change Monitor</title>
-	<style>
-		body {
-			font-family: Arial, sans-serif;
-			max-width: 800px;
-			margin: 0 auto;
-			padding: 20px;
-		}
-
-		#changes {
-			margin-top: 20px;
-			max-height: 700px;
-			overflow: auto;
-		}
-
-		.change-item {
-			padding: 10px;
-			margin-bottom: 5px;
-			border-radius: 4px;
-		}
-
-		.add {
-			background-color: #e6ffe6;
-		}
-
-		.change {
-			background-color: #fff3e6;
-		}
-
-		.delete {
-			background-color: #ffe6e6;
-		}
-	</style>
+	<link rel="stylesheet" href="css/main.css">
 </head>
 
 <body>
-	<h1>File Change Monitor</h1>
+	<h1>File Change Monitor <span class="status"></span></h1>
 	<div id="changes"></div>
 
-	<script src="init.js"></script>
+	<script src="js/main.js"></script>
+	<script src="/inject/index.js" defer async></script>
 </body>
 
 </html>
