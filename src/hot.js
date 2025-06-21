@@ -146,7 +146,7 @@ class HotServer {
 			if (!entryPoints.length) {
 				continue
 			}
-			if (typeof 'entryPoints' === 'string') {
+			if (typeof entryPoints === 'string') {
 				entryPoints = [entryPoints]
 			}
 
@@ -168,11 +168,10 @@ class HotServer {
 					files_inject.push(config.engine)
 				}
 			}
-
-			console.log(files_inject)
 			
 			// inject code to each entry point
 			entryPoints.forEach(entry => {
+				console.log(`injected: ${clientId} - ${entry}`)
 				entry = path.join(this.root, entry);
 
 				if (config?.inject?.combine) {
@@ -185,14 +184,14 @@ class HotServer {
 					if (entry.endsWith('.html')) {
 						injectScript(entry, `<script>${content}</script>`)
 					} else {
-						appendContent(entry, content)
+						injectScript(entry, content)
 					}
 				} else {
 					files_inject.forEach(f => {
 						if (entry.endsWith('.html')) {
 							injectScript(entry, `<script src="${filePath[f].url}" defer async></script>`)
 						} else {
-							appendContent(entry, filePath[f].path)
+							injectScript(entry, filePath[f].path, true)
 						}
 					})
 				}

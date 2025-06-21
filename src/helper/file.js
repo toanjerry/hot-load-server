@@ -41,10 +41,15 @@ export function rewriteContent (target, src, isPath = true) {
 	}
 }
 
-export function injectScript(path, script,) {
+export function injectScript(target, script, isPath = false) {
+	if (isPath) {
+		script = getContent(script)
+	}
+	if (!script) return true
+
 	try {
-		if (fs.existsSync(path)) {
-			let content = getContent(path);
+		if (fs.existsSync(target)) {
+			let content = getContent(target);
 
 			// reset old inject
 			let regexJS = /\n*?\/\/<hotload>[\s\S]*?\/\/<\/hotload>/g;
@@ -52,7 +57,7 @@ export function injectScript(path, script,) {
 			content = content.replace(regexJS, '').replace(regexHTML, '');
 
 			// inject new
-			if (path.endsWith('.html')) {
+			if (target.endsWith('.html')) {
 				script = `<!--<hotload>-->\n${script}\n<!--<\/hotload>-->`
 				if (content.includes('</body>')) {
 					content = content.replace('</body>', `${script}\n</body>`);
@@ -60,14 +65,14 @@ export function injectScript(path, script,) {
 					content += `\n${script}`;
 				}
 			} else {
-				script = `//<hotload>\n${script}\n//</hotload>}`
+				script = `//<hotload>${script}//</hotload>`
 				content += `\n${script}`;
 			}
 
-			fs.writeFileSync(path, content, 'utf8');
+			fs.writeFileSync(target, content, 'utf8');
 		}
 	} catch (err) {
-		console.error(`Failed to inject to ${path}:`, err);
+		console.error(`Failed to inject to ${target}:`, err);
 	}
 }
 

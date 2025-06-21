@@ -1,8 +1,8 @@
-export default function BaseEngine () {
+HotEngine.create(new function () {
+	this.name = 'base'
 	this.opts = {
 		reconnectInterval: 3000,
 	}
-
 	this.process = change => {
 		if (change.action === 'update-js') {
 			updateJS(change.js, change.file_id)
@@ -15,7 +15,7 @@ export default function BaseEngine () {
 		} else if (change.action === 'refresh') {
 			AP.refresh()
 		}
-	}
+	},
 
 	function updateJS (js, file_id) {
 		if (!js) return
@@ -40,5 +40,4 @@ export default function BaseEngine () {
 		// Add or modify a CSS rule
 		stylesheet.insertRule(css, stylesheet.cssRules.length);
 	}
-}
-
+})
