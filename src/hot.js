@@ -114,7 +114,7 @@ class HotServer {
 		return this.config?.clients[client_id] || {}
 	}
 
-	injectClient() {
+	async injectClient() {
 		const filePath = {
 			client: {
 				path: path.join(this.root, 'public', 'js', 'client.js'),
@@ -136,7 +136,7 @@ class HotServer {
 
 		// build file index.min.js
 		rewriteContent(filePath.index_min.path, filePath.index.path)
-		minimizeContent(filePath.index_min.path)
+		await minimizeContent(filePath.index_min.path)
 
 		// inject JS code to client entry
 		for (const clientId in this.config.clients || {}) {

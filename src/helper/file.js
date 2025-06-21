@@ -46,16 +46,19 @@ export function injectScript(path, script,) {
 		if (fs.existsSync(path)) {
 			let content = getContent(path);
 
-			const isHTMLFile = content.includes('</body>')
-
 			// reset old inject
-			const regex = new RegExp(`[//<hotload>|<!--<hotload>-->][\\s\\S]*?[//</hotload>|<!--</hotload>-->]`, 'g');
-			content.replace(regex, '');
+			let regexJS = /\n*?\/\/<hotload>[\s\S]*?\/\/<\/hotload>/g;
+			let regexHTML = /\n*?<!--<hotload>-->[\s\S]*?<!--<\/hotload>-->/g;
+			content = content.replace(regexJS, '').replace(regexHTML, '');
 
 			// inject new
-			if (isHTMLFile) {
-				script = `${startTag}\n${script}\n${endTag}`
-				content = content.replace('</body>', `${script}\n</body>`);
+			if (path.endsWith('.html')) {
+				script = `<!--<hotload>-->\n${script}\n<!--<\/hotload>-->`
+				if (content.includes('</body>')) {
+					content = content.replace('</body>', `${script}\n</body>`);
+				} else {
+					content += `\n${script}`;
+				}
 			} else {
 				script = `//<hotload>\n${script}\n//</hotload>}`
 				content += `\n${script}`;
@@ -68,10 +71,10 @@ export function injectScript(path, script,) {
 	}
 }
 
-export function minimizeContent(target) {
+export async function minimizeContent(target) {
 	if (fs.existsSync(target)) {
 		const code = fs.readFileSync(target, 'utf8');
-		minify(code).then(minified => {
+		await minify(code).then(minified => {
 			if (minified.code) {
 				fs.writeFileSync(target, minified.code, 'utf8');
 			}

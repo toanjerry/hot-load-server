@@ -1,9 +1,9 @@
-export default function DefaultEngine () {
-	this.opts = {
+HotEngine.create({
+	name: 'default',
+	opts: {
 		reconnectInterval: 3000,
-	}
-
-	this.process = change => {
+	},
+	process: change => {
 		const changesElement = document.getElementById('changes');
 		const div = document.createElement('div');
 		div.className = `change-item ${change.event}`;
@@ -13,4 +13,4 @@ export default function DefaultEngine () {
 		`;
 		changesElement.insertBefore(div, changesElement.firstChild);
 	}
-}
+})

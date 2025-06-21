@@ -62,63 +62,6 @@ class HotClient {
 	}
 }
 
-const HotEngine = new function () {
-	this.update = (change) => {
-		if (change.action === 'refresh') {
-			return window.location.reload();
-		}
-		if (change.action === 'refresh-js') {
-			refreshJS(change.path)
-		} else if (change.action === 'refresh-css') {
-			refreshCSS(change.path)
-		}
-	}
-
-	function refreshJS (path) {
-		if (!path) return
-		path = path.split(/[\\/]/).join('/')
-
-		const scripts = Array.from(document.getElementsByTagName('script'));
-		const target = scripts.find(script => {
-			if (!script.src) {
-				return false;
-			}
-			const url = new URL(script.src);
-			return path.endsWith(url.pathname)
-		});
-
-		if (target) {
-			const newScript = document.createElement('script');
-			newScript.src = target.src
-			newScript.async = target.async;
-			newScript.defer = target.defer;
-			target.parentNode.insertBefore(newScript, target.nextSibling);
-			target.parentNode.removeChild(target);
-		}		
-	}
-
-	function refreshCSS (path) {
-		if (!path) return;
-		path = path.split(/[\\/]/).join('/')
-
-		const links = Array.from(document.getElementsByTagName('link'));
-		const target = links.find(link => {
-			if (link.rel !== 'stylesheet' || !link.href) {
-				return false;
-			}
-			const url = new URL(link.href);
-			return path.endsWith(url.pathname)
-		});
-
-		if (target) {
-			const newLink = target.cloneNode();
-			newLink.href = target.href.split('?')[0] + '?t=' + Date.now();
-			target.parentNode.insertBefore(newLink, target.nextSibling);
-			target.parentNode.removeChild(target);
-		}
-	}
-}
-
 const HMR = new function () {
 	this.connect = async function (host, port) {
 		this.detectLocation()
@@ -155,19 +98,13 @@ const HMR = new function () {
 			this.opts.engine = 'default'
 		}
 
-		if (!window.ClientEngine) {
-			const engine = await import(`${this.server}/engine/${this.opts.engine}.js`)
-			if (!engine) {
-				console.error('HOT: error load engine')
-			}
-	
-			window.ClientEngine = engine.default;
-		}
-		
-		this.engine = new ClientEngine()
-		this.client.setOpts(this.engine.opts)
-
-		console.log(`HOT: ${this.engine.constructor.name || ''} is inited`)
+		const script = document.createElement('script');
+		script.src = `${this.server}/engine/${this.opts.engine}.js`;
+		script.onload = () => {};
+		script.onerror = (err) => {
+			console.error(`HOT: Failed to load engine ${this.opts.engine}`, err);
+		};
+		document.body.appendChild(script);
 	}
 
 	this.detectLocation = () => {
@@ -225,4 +162,71 @@ const HMR = new function () {
 		document.body.appendChild(overlay);
 	}
 };
+
+const HotEngine = new function () {
+	this.update = (change) => {
+		if (change.action === 'refresh') {
+			return window.location.reload();
+		}
+		if (change.action === 'refresh-js') {
+			refreshJS(change.path)
+		} else if (change.action === 'refresh-css') {
+			refreshCSS(change.path)
+		}
+	}
+
+	this.create = (engine) => {
+		if (!HMR) {
+			console.err('HOT: HMR isnot loaded')
+		}
+		HMR.engine = engine
+		HMR.client.setOpts(HMR.engine.opts)
+
+		console.log(`HOT: Engine "${engine.name || ''}" is loaded`)
+	}
+
+	function refreshJS (path) {
+		if (!path) return
+		path = path.split(/[\\/]/).join('/')
+
+		const scripts = Array.from(document.getElementsByTagName('script'));
+		const target = scripts.find(script => {
+			if (!script.src) {
+				return false;
+			}
+			const url = new URL(script.src);
+			return path.endsWith(url.pathname)
+		});
+
+		if (target) {
+			const newScript = document.createElement('script');
+			newScript.src = target.src
+			newScript.async = target.async;
+			newScript.defer = target.defer;
+			target.parentNode.insertBefore(newScript, target.nextSibling);
+			target.parentNode.removeChild(target);
+		}		
+	}
+
+	function refreshCSS (path) {
+		if (!path) return;
+		path = path.split(/[\\/]/).join('/')
+
+		const links = Array.from(document.getElementsByTagName('link'));
+		const target = links.find(link => {
+			if (link.rel !== 'stylesheet' || !link.href) {
+				return false;
+			}
+			const url = new URL(link.href);
+			return path.endsWith(url.pathname)
+		});
+
+		if (target) {
+			const newLink = target.cloneNode();
+			newLink.href = target.href.split('?')[0] + '?t=' + Date.now();
+			target.parentNode.insertBefore(newLink, target.nextSibling);
+			target.parentNode.removeChild(target);
+		}
+	}
+}
 HMR.connect('localhost',3000)
