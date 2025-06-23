@@ -10,6 +10,8 @@ import path from 'path';
 import {appendContent, injectScript, rewriteContent, minimizeContent, getContent} from './helper/file.js'
 import {isOriginAllowed} from './helper/index.js'
 
+import {clientByPath} from '../client.config.js'
+
 class HotServer {
 	constructor(config) {
 		this.config = config;
@@ -17,6 +19,8 @@ class HotServer {
 		this.url = `${config.protocol}://${this.domain}`
 		this.root = process.cwd()
 		this.rootFolder = path.basename(this.root);
+		this.plugins = config.plugins || [];
+		this.engines = {}
 	
 		this.init()
 	}
@@ -26,6 +30,13 @@ class HotServer {
 		
 		this.ws = new SocketServer(this);
 		this.watch = new FileWatcher(this).start();
+
+		this.plugins.forEach(plugin => {
+			if (plugin.configureServer) {
+				plugin.configureServer(this)
+				console.info(`Plugin "${plugin.name || ''}" loaded`)
+			}
+		});
 	}
 
 	getCors() {
@@ -108,6 +119,51 @@ class HotServer {
 
 		console.info('Server change. Restarting...');
 		this.init()
+	}
+
+	dispatch(changes) {
+		const data = {}
+		for (const change of changes) {
+			if (change.path.startsWith(`${this.rootFolder}/src`)) {
+				if (this.config.autoRestart) {
+					return this.restart()
+				}
+			}
+			let clientId = clientByPath(change.path, this)
+			if (!data[clientId]) {
+				data[clientId] = []
+			}
+
+			data[clientId].push(change)
+		}
+
+		this.commit(data)
+	}
+
+	async commit(clientChanges) {
+		for (const clientId in clientChanges) {
+			const changes = clientChanges[clientId]
+			let apps = []
+
+			const engine = await this.getEngine(clientId)
+			if (engine && engine.process) {
+				apps = engine.process(changes, this)
+			}
+				
+			this.ws.broadcast({type: 'change', changes}, apps || [])
+		}
+	}
+
+	async getEngine(clientId) {
+		const config = this.getClientConfig(clientId)
+		const file = config.engine || clientId
+
+		if (!this.engines[file]) {
+			this.engines[file] = await import(`./engine/${file}.js`).then(mod => mod.default || mod).catch(() => null)
+			console.info(`Engine "${file}" loaded`)
+		}
+
+		return this.engines[file]
 	}
 
 	getClientConfig(client_id) {

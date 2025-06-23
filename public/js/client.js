@@ -45,9 +45,9 @@ class HotClient {
 			if (data.type === 'change') {
 				HMR.overlay()
 				try {
-					HotEngine.update(data)
+					HotEngine.process(data.changes || [])
 					if (HMR.engine) {
-						HMR.engine.process(data)
+						HMR.engine.process(data.changes || [])
 					}
 				} catch (err) {
 					console.error('HOT: Fail to process message', err)
@@ -164,14 +164,16 @@ const HMR = new function () {
 };
 
 const HotEngine = new function () {
-	this.update = (change) => {
-		if (change.action === 'refresh') {
-			return window.location.reload();
-		}
-		if (change.action === 'refresh-js') {
-			refreshJS(change.path)
-		} else if (change.action === 'refresh-css') {
-			refreshCSS(change.path)
+	this.process = (changes) => {
+		for (const change of changes) {
+			if (change.action === 'refresh') {
+				return window.location.reload();
+			}
+			if (change.action === 'refresh-js') {
+				refreshJS(change.path)
+			} else if (change.action === 'refresh-css') {
+				refreshCSS(change.path)
+			}
 		}
 	}
 
