@@ -3,6 +3,10 @@ import { minify } from 'terser';
 
 export function getContent (target) {
 	try {
+		if (!fs.existsSync(target)) {
+			return ''
+		}
+
 		return fs.readFileSync(target, 'utf-8');
 	} catch (err) {
 		console.error(`Failed to read ${target}:`, err);
@@ -41,6 +45,22 @@ export function rewriteContent (target, src, isPath = true) {
 	}
 }
 
+export function removeScript(target) {
+	try {
+		if (fs.existsSync(target)) {
+			let content = getContent(target);
+
+			let regexJS = /\n*?\/\/<hotload>[\s\S]*?\/\/<\/hotload>/g;
+			let regexHTML = /\n*?<!--<hotload>-->[\s\S]*?<!--<\/hotload>-->/g;
+			content = content.replace(regexJS, '').replace(regexHTML, '');
+
+			fs.writeFileSync(target, content, 'utf8');
+		}
+	} catch (err) {
+		console.error(`Failed to remove from ${target}:`, err);
+	}
+}
+
 export function injectScript(target, script, isPath = false) {
 	if (isPath) {
 		script = getContent(script)
@@ -50,11 +70,6 @@ export function injectScript(target, script, isPath = false) {
 	try {
 		if (fs.existsSync(target)) {
 			let content = getContent(target);
-
-			// reset old inject
-			let regexJS = /\n*?\/\/<hotload>[\s\S]*?\/\/<\/hotload>/g;
-			let regexHTML = /\n*?<!--<hotload>-->[\s\S]*?<!--<\/hotload>-->/g;
-			content = content.replace(regexJS, '').replace(regexHTML, '');
 
 			// inject new
 			if (target.endsWith('.html')) {

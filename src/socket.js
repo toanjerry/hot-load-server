@@ -71,7 +71,7 @@ class SocketServer {
 	}
 
 
-	broadcast(payload, apps = []) {
+	broadcast(payload, apps) {
 		payload = JSON.stringify(payload);
 
 		apps.push('hot')

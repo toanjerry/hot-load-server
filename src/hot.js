@@ -7,10 +7,11 @@ import { Routes } from './routes.js';
 import SocketServer from './socket.js';
 import FileWatcher from './watcher.js';
 import path from 'path';
-import {appendContent, injectScript, rewriteContent, minimizeContent, getContent} from './helper/file.js'
+import {appendContent, injectScript, rewriteContent, minimizeContent, getContent, removeScript} from './helper/file.js'
 import {isOriginAllowed} from './helper/index.js'
 
 import {clientByPath} from '../client.config.js'
+import { existsSync, mkdirSync } from 'fs';
 
 class HotServer {
 	constructor(config) {
@@ -34,8 +35,8 @@ class HotServer {
 		this.plugins.forEach(plugin => {
 			if (plugin.configureServer) {
 				plugin.configureServer(this)
-				console.info(`Plugin "${plugin.name || ''}" loaded`)
 			}
+			console.info(`Plugin "${plugin.name || ''}" loaded`)
 		});
 	}
 
@@ -146,8 +147,9 @@ class HotServer {
 			let apps = []
 
 			const engine = await this.getEngine(clientId)
-			if (engine && engine.process) {
-				apps = engine.process(changes, this)
+
+			if (engine?.process) {
+				apps = await engine.process(changes, this)
 			}
 				
 			this.ws.broadcast({type: 'change', changes}, apps || [])
@@ -155,19 +157,15 @@ class HotServer {
 	}
 
 	async getEngine(clientId) {
-		const config = this.getClientConfig(clientId)
+		const config = this.config?.clients[clientId] || {}
 		const file = config.engine || clientId
 
 		if (!this.engines[file]) {
-			this.engines[file] = await import(`./engine/${file}.js`).then(mod => mod.default || mod).catch(() => null)
+			this.engines[file] = await import(`./engine/${file}.js`).then(mod => mod.default || mod).catch((e) => console.log(e))
 			console.info(`Engine "${file}" loaded`)
 		}
 
 		return this.engines[file]
-	}
-
-	getClientConfig(client_id) {
-		return this.config?.clients[client_id] || {}
 	}
 
 	async injectClient() {
@@ -186,6 +184,11 @@ class HotServer {
 			},
 		}
 
+		let injectedFiles = this.#getInjectedFiles()
+		injectedFiles.forEach(file => {
+			removeScript(file)
+		});
+
 		// build file index.js
 		rewriteContent(filePath.index.path, filePath.client.path)
 		appendContent(filePath.index.path, `HMR.connect('${this.config.host}',${this.config.port})`, false)
@@ -194,6 +197,7 @@ class HotServer {
 		rewriteContent(filePath.index_min.path, filePath.index.path)
 		await minimizeContent(filePath.index_min.path)
 
+		injectedFiles = []
 		// inject JS code to client entry
 		for (const clientId in this.config.clients || {}) {
 			const config = this.config.clients[clientId]
@@ -251,9 +255,26 @@ class HotServer {
 						}
 					})
 				}
+
+				injectedFiles.push(entry)
 			})
 
+			this.#writeInjectedFiles(injectedFiles)
 		}
+	}
+
+	#getInjectedFiles() {
+		const files = getContent(path.join(this.root, 'cache', '.injected'))
+
+		return files.split("\n")
+	}
+
+	#writeInjectedFiles(injectedFiles) {
+		const cacheDir = path.join(this.root, 'cache');
+		if (!existsSync(cacheDir)) {
+			mkdirSync(cacheDir, { recursive: true });
+		}
+		rewriteContent(path.join(cacheDir, '.injected'), injectedFiles.join("\n"), false)
 	}
 }
 

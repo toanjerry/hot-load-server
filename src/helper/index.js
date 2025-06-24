@@ -15,3 +15,25 @@ export function isOriginAllowed (origin, domains = []) {
 		return origin === `http://${domain}` || origin === `https://${domain}`;
 	});
 }
+
+export async function runCmd (cmd) {
+	const { exec } = await import('child_process');
+
+	try {
+		return await new Promise((resolve) => {
+			exec(cmd, (err, stdout, stderr) => {
+				if (err) {
+					resolve({ err: `${err.message}\n${stdout}` });
+					return;
+				}
+				if (stderr) {
+					console.error(`Stderr: ${stderr}`);
+				}
+
+				resolve({ msg: stdout });
+			});
+		});
+	} catch (e) {
+		return { err: e }
+	}
+}
