@@ -171,6 +171,7 @@ const HotEngine = new function () {
 	this.REFRESH_CSS = 'refresh-css'
 	this.UPDATE_JS = 'update-js'
 	this.UPDATE_CSS = 'update-css'
+	this.UPDATE_TPL = 'update-tpl'
 
 	this.process = (changes) => {
 		for (const change of changes) {

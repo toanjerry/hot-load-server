@@ -10,7 +10,7 @@ const BaseEngine = {
 	},
 	process: async (changes, hot) => {
 		// compile files
-		const src_map = await compile(changes.map((c) => c.event !== 'delete' && c.path)) || {}
+		const src_map = await compile(changes.map((c) => (c.event !== 'delete' && c.path)).filter(f => f)) || {}
 
 		const apps = new Set()
 		changes.forEach(change => {
@@ -37,31 +37,22 @@ const BaseEngine = {
 				}
 			} else if (path.endsWith('.css')) {
 				change.pattern = '.*\.base\.beta\/css\/'
-				if (change.event === 'delete') {
-					change.action = 'refresh-css'
-				} else if (change.type === 'change') {
-					if (!src.css) { // remove all code of file
-						change.action = 'refresh-css'
-					} else {
-						change.action = 'update-css'
-						change.css = src.css
-					}
-				} else {
-					change.action = 'update-css'
-					change.css = src.css || ''
-				}
+				// if (change.event === 'delete') {
+				// 	change.action = 'refresh-css'
+				// } else if (change.type === 'change') {
+				// 	if (!src.css) { // remove all code of file
+				// 		change.action = 'refresh-css'
+				// 	} else {
+				// 		change.action = 'update-css'
+				// 		change.css = src.css
+				// 	}
+				// } else {
+				// 	change.action = 'update-css'
+				// 	change.css = src.css || ''
+				// }
 				change.action = 'refresh-css'
 			} else if (path.endsWith('.base') || path.endsWith('.tpl')) {
-				if (change.event === 'delete') {
-					change.action = 'xrefresh'
-				} else {
-					change.action = 'update-tpl'
-					change.js = src.js || ''
-					change.title = src.title || ''
-					change.html = src.html || ''
-					change.reset = src.reset || ''
-					change.update = src.update || ''
-				}
+				change.action = 'refresh-x'
 			} else if (path.endsWith('.lng')) {
 				cacheLang([app])
 			} else if (path.endsWith('static.php')) {

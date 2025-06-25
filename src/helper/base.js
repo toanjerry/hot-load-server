@@ -1,7 +1,7 @@
 import { runCmd } from "./index.js"
 
 export async function compile(files) {
-	if (!files) return
+	if (!files || !files.length) return
 	
 	let rs = await runCmd(`php ./script/compile.base.php ${files.join(',')}`);
 	if (rs.err) {
@@ -18,6 +18,8 @@ export async function compile(files) {
 }
 
 export async function cacheLang(apps, lang = 'vi') {
+	if (!apps || !apps.length) return
+	
 	let rs = await runCmd(`php ./script/cache.lang.php ${apps.join(',')} ${lang}`);
 	if (rs.err) {
 		console.error(rs)

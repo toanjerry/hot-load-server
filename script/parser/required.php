@@ -1,7 +1,7 @@
 <?php
 
 	// folder
-	define("ENV", 1);
+	define("ENV", 0);
 	define("WORK_DIR", 'C:\xampp\htdocs\baseroot');
 	define("AP_ROOT", WORK_DIR."\ap");
 	define("GDIR", 'C:\xampp\htdocs\baseroot\base');
@@ -11,20 +11,26 @@
 	define("FINAL_CACHED", 1);
 	define("ALLOW_DYNAMIC_URL", 0);
 
+	define("HTTPS", 1);
+	define("DATA_URL", 'https://data.base.local.basecdn.net');
+	define("SHARE_URL", 'https://share.base.local.basecdn.net');
+	define("SYS_DOMAIN", 'base.beta');
+	define("DOMAIN", 'base.beta');
+
 	// CSS
 	define("CSS_CONFIG_FILE", '{EXT_STATIC_DIR}/config.css');
 	define("CSS_MINIFIED", 0);
 
 	require_once(AP_ROOT.'/base/vital/inc/helper.php');
 	require_once(AP_ROOT.'/base/vital/inc/utf8.string.php');
-	require_once(AP_ROOT.'\base\vital\function.php');
+	require_once(AP_ROOT.'/base/vital/function.php');
 	require_once(AP_ROOT.'/base/apu/system.php');
 	require_once(AP_ROOT.'/init/base.php');
 	require_once(AP_ROOT.'/base/vital/word.php');
 	require_once(AP_ROOT.'/base/vital/validator.php');
 	require_once(AP_ROOT.'/base/vital/lang.php');
 	require_once(AP_ROOT.'/base/vital/apt.php');
-	require_once(AP_ROOT.'\base\vital\file.php');
+	require_once(AP_ROOT.'/base/vital/file.php');
 
 	require_once(AP_ROOT.'/base/vital/inc/sanitizer.php');
 	require_once(AP_ROOT.'/base/vital/html.php');
@@ -46,6 +52,10 @@
 		define("ROOT_DIR", GDIR."/$app");
 		define("APPKEY", $app);
 		define("CACHE_DIR", WORK_DIR."/data/base/{$app}.cache");
+		define("ROOT_URL", "https://$app.base.beta");
+		define("STATIC_URL", "https://static-devtest.basecdn.net/$app");
+
+		\APTemplate::viewAt(ROOT_DIR);
 		CONFIG::root(ROOT_DIR);
 	}
 ?>

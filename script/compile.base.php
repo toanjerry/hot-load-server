@@ -8,13 +8,16 @@
 	require_once('parser/required.php');
 
 	require_once('parser/lang.php');
+	// require_once('parser/tpl.php');
 	require_once('parser/js.php');
 	require_once('parser/css.php');
 	require_once('parser/template.php');
 
 	$parsed_files = [];
-	foreach ($fileList as $file) {
-		$app = explode('/', str_replace('\\', '/', $file))[0] ?? '';
+	foreach ($fileList as $f) {
+		$file = str_replace('\\', '/', $f);
+		$parts = explode('/', $file);
+		$app = $parts[0] ?? '';
 		if (!$app) continue;
 
 		defineApp($app);
@@ -30,14 +33,7 @@
 				'css' => parseCSS(GDIR."/$file")
 			];
 		} else if ($ext === "base" || $ext === "tpl") {
-			$parsed_files[$file] = [
-				// 'html' => \APTemplate::xParse($file),
-				'html' => \APTemplate::getText(),
-				'js' => \APTemplate::getInternalJS().";Render.finish();",
-				'title' => \APTemplate::getTitle(),
-				'update' => 'update_page',
-				'reset' => 'reset_page',
-			];
+			// $parsed_files[$file] = parseTemplate(\Word::joinPart('/', $parts, 1));
 		}
 	}
 
