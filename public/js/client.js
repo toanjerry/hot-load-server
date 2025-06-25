@@ -164,22 +164,30 @@ const HMR = new function () {
 };
 
 const HotEngine = new function () {
+	// actions
+	this.REFRESH = 'refresh'
+	this.REFRESH_X = 'refresh-x'
+	this.REFRESH_JS = 'refresh-js'
+	this.REFRESH_CSS = 'refresh-css'
+	this.UPDATE_JS = 'update-js'
+	this.UPDATE_CSS = 'update-css'
+
 	this.process = (changes) => {
 		for (const change of changes) {
-			if (change.action === 'refresh') {
+			if (change.action === HotEngine.REFRESH) {
 				return window.location.reload();
 			}
-			if (change.action === 'refresh-js') {
-				refreshJS(change.path)
-			} else if (change.action === 'refresh-css') {
-				refreshCSS(change.path)
+			if (change.action === HotEngine.REFRESH_JS) {
+				this.refreshJS(change.url, change.pattern)
+			} else if (change.action === HotEngine.REFRESH_CSS) {
+				this.refreshCSS(change.url, change.pattern)
 			}
 		}
 	}
 
 	this.create = (engine) => {
 		if (!HMR) {
-			console.err('HOT: HMR isnot loaded')
+			return console.err('HOT: HMR isnot loaded')
 		}
 		HMR.engine = engine
 		HMR.client.setOpts(HMR.engine.opts)
@@ -187,47 +195,60 @@ const HotEngine = new function () {
 		console.log(`HOT: Engine "${engine.name || ''}" is loaded`)
 	}
 
-	function refreshJS (path) {
-		if (!path) return
-		path = path.split(/[\\/]/).join('/')
+	this.getCSSTargets = (url, pattern) => {
+		if (url) {
+			url = url.split(/[\\/]/).join('/')
+			pattern = null
+		};
 
-		const scripts = Array.from(document.getElementsByTagName('script'));
-		const target = scripts.find(script => {
-			if (!script.src) {
-				return false;
-			}
-			const url = new URL(script.src);
-			return path.endsWith(url.pathname)
+		const regexp = pattern ? new RegExp(pattern) : null
+		const links = Array.from(document.getElementsByTagName('link'));
+
+		return links.filter(link => {
+			if (link.rel !== 'stylesheet' || !link.href) return false
+			if (url === link.href) return true;
+			return regexp ? regexp.test(link.href) : false
 		});
+	}
 
-		if (target) {
+	this.getJSTargets = (url, pattern) => {
+		if (url) {
+			url = url.split(/[\\/]/).join('/')
+			pattern = null
+		}
+		const regexp = pattern ? new RegExp(pattern) : null
+		const scripts = Array.from(document.getElementsByTagName('script'));
+
+		return scripts.filter(script => {
+			if (!script.src) return false
+			if (url === script.src) return true;
+			return regexp ? regexp.test(script.src) : false
+		});
+	}
+
+	this.refreshJS = (url, pattern) => {
+		const targets = this.getJSTargets(url, pattern)
+		if (!targets || !targets.length) return
+
+		targets.forEach(target => {
 			const newScript = document.createElement('script');
 			newScript.src = target.src
 			newScript.async = target.async;
 			newScript.defer = target.defer;
 			target.parentNode.insertBefore(newScript, target.nextSibling);
 			target.parentNode.removeChild(target);
-		}		
+		})
 	}
 
-	function refreshCSS (path) {
-		if (!path) return;
-		path = path.split(/[\\/]/).join('/')
+	this.refreshCSS = (url, pattern) => {
+		const targets = this.getCSSTargets(url, pattern)
+		if (!targets || !targets.length) return
 
-		const links = Array.from(document.getElementsByTagName('link'));
-		const target = links.find(link => {
-			if (link.rel !== 'stylesheet' || !link.href) {
-				return false;
-			}
-			const url = new URL(link.href);
-			return path.endsWith(url.pathname)
-		});
-
-		if (target) {
+		targets.forEach(target => {
 			const newLink = target.cloneNode();
-			newLink.href = target.href.split('?')[0] + '?t=' + Date.now();
+			newLink.href = target.href;
 			target.parentNode.insertBefore(newLink, target.nextSibling);
 			target.parentNode.removeChild(target);
-		}
+		})
 	}
 }

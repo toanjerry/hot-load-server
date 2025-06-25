@@ -163,6 +163,9 @@ class HotServer {
 		if (!this.engines[file]) {
 			this.engines[file] = await import(`./engine/${file}.js`).then(mod => mod.default || mod).catch((e) => console.log(e))
 			console.info(`Engine "${file}" loaded`)
+			if (this.engines[file]?.init) {
+				this.engines[file]?.init(this)
+			}
 		}
 
 		return this.engines[file]

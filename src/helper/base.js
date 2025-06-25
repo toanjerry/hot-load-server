@@ -1,9 +1,9 @@
 import { runCmd } from "./index.js"
 
-export async function compiler(files) {
+export async function compile(files) {
 	if (!files) return
 	
-	let rs = await runCmd(`php ./script/base.compiler.php ${files.join(',')}`);
+	let rs = await runCmd(`php ./script/compile.base.php ${files.join(',')}`);
 	if (rs.err) {
 		console.error(rs)
 		return
@@ -15,4 +15,14 @@ export async function compiler(files) {
 		console.error(rs)
 		return {}
 	}
+}
+
+export async function cacheLang(apps, lang = 'vi') {
+	let rs = await runCmd(`php ./script/cache.lang.php ${apps.join(',')} ${lang}`);
+	if (rs.err) {
+		console.error(rs)
+		return
+	}
+
+	console.log(`Lang cached ${apps.join(', ')}`)
 }
