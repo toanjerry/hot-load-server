@@ -4,8 +4,8 @@ const BaseEngine = {
 	name: "Base",
 	init: (hot) => {
 		const config = hot.config?.clients?.base || {}
-		if (config?.data?.langCache?.length) {
-			cacheLang(config.data.langCache)
+		if (config?.langCache?.length) {
+			cacheLang(config.langCache)
 		}
 	},
 	process: async (changes, hot) => {
@@ -50,6 +50,7 @@ const BaseEngine = {
 					change.action = 'update-css'
 					change.css = src.css || ''
 				}
+				change.action = 'refresh-css'
 			} else if (path.endsWith('.base') || path.endsWith('.tpl')) {
 				if (change.event === 'delete') {
 					change.action = 'xrefresh'

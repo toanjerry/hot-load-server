@@ -4,13 +4,15 @@ import path from 'path';
 
 import ClientConfig from './client.config.js'
 
+import QueuePlugin from './src/plugin/queue.js'
+
 // Load environment variables
 dotenv.config();
 
 const config = {
 	host: process.env.HOST || 'localhost',
 	port: process.env.PORT || '3000',
-	protocol: process.env.PROTOCOL || 'https',
+	protocol: process.env.PROTOCOL || 'http',
 	autoRestart: false,
 	// cors
 	domains: process.env.ALLOWED_DOMAINS ? process.env.ALLOWED_DOMAINS.split(',') : null,
@@ -24,20 +26,30 @@ const config = {
 	// file watcher config for chokidar
 	watch: {
 		cwd: path.resolve(process.cwd(), process.env.CWD),
-		files: ['**/*.js', '**/*.css', '**/*.html', '**/*.base', '**/*.tpl'],
+		files: ['**/*.js', '**/*.css', '**/*.html', '**/*.base', '**/*.tpl', '**/*.lng'],
 		ignored: [
+			// common folder
 			'**/node_modules/**',
 			'**/.git/**',
 			'**/dist/**',
 			'**/build/**',
+			// common framework project 
 			'uikit/**',
-			'system/**',
 			'static/**',
+			'system/**',
 			'server/**',
 			'account/**',
 			'api/**',
 			'databases/**',
-			// '**/*.css',
+			// not relate front-end folders
+			'*/dev/**',
+			'*/tests/**',
+			'*/test/**',
+			'*/www/**',
+			'*/conf/**',
+			'*/apps/api/**',
+			'*/apps/*/action/**',
+			// not relate front-end files
 			'**/*.php',
 			'**/*.md',
 			'**/*.ini',
@@ -51,6 +63,7 @@ const config = {
 		persistent: true,
 		ignoreInitial: true,
 	},
+	plugins: [QueuePlugin()],
 	// clients config
 	clients: ClientConfig,
 };

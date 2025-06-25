@@ -27,6 +27,7 @@ class HotServer {
 	}
 
 	init () {
+		this.initFolders()
 		this.initServer()
 		
 		this.ws = new SocketServer(this);
@@ -38,6 +39,18 @@ class HotServer {
 			}
 			console.info(`Plugin "${plugin.name || ''}" loaded`)
 		});
+	}
+
+	initFolders () {
+		this.cacheDir = path.join(this.root, 'cache');
+		if (!existsSync(this.cacheDir)) {
+			mkdirSync(this.cacheDir, { recursive: true });
+		}
+
+		this.bundleDir = path.join(this.root, 'public', 'bundle')
+		if (!existsSync(this.bundleDir)) {
+			mkdirSync(this.bundleDir, { recursive: true });
+		}
 	}
 
 	getCors() {
@@ -178,11 +191,11 @@ class HotServer {
 				url: '/inject/client.js'
 			},
 			index: {
-				path: path.join(this.root, 'public', 'bundle', 'index.js'),
+				path: path.join(this.bundleDir, 'index.js'),
 				url: '/bundle/index.js'
 			},
 			index_min: {
-				path: path.join(this.root, 'public', 'bundle', 'index.min.js'),
+				path: path.join(this.bundleDir, 'index.min.js'),
 				url: '/bundle/index.min.js'
 			},
 		}
@@ -203,6 +216,8 @@ class HotServer {
 		injectedFiles = []
 		// inject JS code to client entry
 		for (const clientId in this.config.clients || {}) {
+			if (clientId === 'default') continue
+			
 			const config = this.config.clients[clientId]
 			// get all entry points
 			let entryPoints = config.entryPoints || ''
@@ -267,17 +282,13 @@ class HotServer {
 	}
 
 	#getInjectedFiles() {
-		const files = getContent(path.join(this.root, 'cache', '.injected'))
+		const files = getContent(path.join(this.cacheDir, '.injected'))
 
 		return files.split("\n")
 	}
 
 	#writeInjectedFiles(injectedFiles) {
-		const cacheDir = path.join(this.root, 'cache');
-		if (!existsSync(cacheDir)) {
-			mkdirSync(cacheDir, { recursive: true });
-		}
-		rewriteContent(path.join(cacheDir, '.injected'), injectedFiles.join("\n"), false)
+		rewriteContent(path.join(this.cacheDir, '.injected'), injectedFiles.join("\n"), false)
 	}
 }
 
