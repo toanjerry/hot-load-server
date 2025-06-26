@@ -9,19 +9,25 @@ HotEngine.create(new function () {
 		}
 
 		if (changes[HotEngine.UPDATE_CSS]) {
-			changes[HotEngine.UPDATE_CSS].forEach(change => updateCSS(change.code, change.url, change.pattern))
+			changes[HotEngine.UPDATE_CSS].forEach(change => updateCSS(change))
 		}
 		if (changes[HotEngine.UPDATE_JS]) {
-			changes[HotEngine.UPDATE_JS].forEach(change => updateJS(change.code))
+			changes[HotEngine.UPDATE_JS].forEach(change => updateJS(change))
 		}
 	}
-	function updateJS (code) {
-		if (!code.js) return
-		eval(code.js);
+	function updateJS (change) {
+		try {
+			if (change?.code?.js) {
+				eval(change.code.js)
+			}
+		} catch (err) {
+			console.error('HOT: JS ', err)
+			HMR.overlay(err, {event: change.event, path: change.path, time: change.time}, false)
+		}
 		// TODO: restore stage
 	}
-	function updateCSS (code, url, pattern) {
-		const targets = HotEngine.getCSSTargets(url, pattern)
+	function updateCSS (change) {
+		const targets = HotEngine.getCSSTargets(change.url, change.pattern)
 		if (!targets || !targets.length) return
 		targets.forEach(target => {
 			// for (let rule of sheet.cssRules) {

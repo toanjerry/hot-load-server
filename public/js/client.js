@@ -49,7 +49,7 @@ class HotClient {
 					}
 				} catch (err) {
 					console.error('HOT: Fail to process message', err)
-					HMR.overlay(err, data)
+					HMR.overlay(err)
 				}
 			} else if (data.type === 'config') {
 				HMR.setOpts(data.opts).init()
@@ -116,20 +116,21 @@ const HMR = new function () {
 		}
 	}
 
-	this.overlay = function (msg = '', data) {
+	this.overlay = function (msg = '', data, override = true) {
 		if (!this.opts.overlay) {
 			return
 		}
 
 		const overlay = document.getElementById('hmr-overlay');
-		if (msg) {
-			delete data.js
-			delete data.css
-			document.getElementById('hmr-overlay-content').innerText = msg+'\n'+JSON.stringify(data)
-			overlay.style.display = 'flex';
+		const content = document.getElementById('hmr-overlay-content');
+		const newMsg = msg + '\n' + JSON.stringify(data) + '\n';
+		if (override) {
+			content.innerText = newMsg;
 		} else {
-			overlay.style.display = 'none';
+			content.innerText += newMsg;
 		}
+
+		overlay.style.display = newMsg ? 'flex' : 'none';
 	}
 	
 	this.initOverlay = () => {
@@ -152,6 +153,7 @@ const HMR = new function () {
 		const msgBox = document.createElement('div');
 		msgBox.id = 'hmr-overlay-content';
 		msgBox.style.background = '#fff';
+		msgBox.style.overflow = 'auto';
 		msgBox.style.padding = '2rem';
 		msgBox.style.boxShadow = '0 2px 16px rgba(0,0,0,0.2)';
 		msgBox.style.color = 'red';
