@@ -1,4 +1,5 @@
 import {compile, cacheLang} from '../helper/base.js';
+import {arrayGroup} from '../helper/array.js';
 
 const BaseEngine = {
 	name: "Base",
@@ -9,63 +10,67 @@ const BaseEngine = {
 		}
 	},
 	process: async (changes, hot) => {
-		// compile files
-		const src_map = await compile(changes.map((c) => (c.event !== 'delete' && c.path)).filter(f => f)) || {}
+		changes = arrayGroup(changes, c => c.path.split(/[\\/]/)[0])
 
-		const apps = new Set()
-		changes.forEach(change => {
-			const path = change.path
-			const src = src_map[path] || {}
-			const app = path.split(/[\\/]/)[0]
-			apps.add(app);
-
-			if (path.endsWith('.js')) {
-				change.pattern = '.*\.base\.beta\/js\/'
-
-				if (change.event === 'delete') {
-					change.action = 'refresh-js'
-				} else if (change.type === 'change') {
-					if (!src.js) { // remove all code of file
-						change.action = 'refresh-js'
-					} else {
-						change.action = 'update-js'
-						change.js = src.js
-					}
-				} else {
-					change.action = 'update-js'
-					change.js = src.js || ''
+		const clientChanges = []
+		for (const app in changes) {
+			const actionGroup = arrayGroup(changes[app], (c) => {
+				const path = c.path
+				if (path.endsWith('.js')) {
+					c.pattern = '.*\.base\.beta\/js\/'
+					return c.event === 'delete' ? 'refresh-js' : 'update-js'
+				} else if (path.endsWith('.css')) {
+					c.pattern = '.*\.base\.beta\/css\/'
+					return 'refresh-css'
+				} else if (path.endsWith('.base') || path.endsWith('.tpl')) {
+					return 'refresh-x'
+				} else if (path.endsWith('.lng')) {
+					return 'refresh-lang'
+				} else if (path.endsWith('static.php')) {
+					return 'refresh'
 				}
-			} else if (path.endsWith('.css')) {
-				change.pattern = '.*\.base\.beta\/css\/'
-				// if (change.event === 'delete') {
-				// 	change.action = 'refresh-css'
-				// } else if (change.type === 'change') {
-				// 	if (!src.css) { // remove all code of file
-				// 		change.action = 'refresh-css'
-				// 	} else {
-				// 		change.action = 'update-css'
-				// 		change.css = src.css
-				// 	}
-				// } else {
-				// 	change.action = 'update-css'
-				// 	change.css = src.css || ''
-				// }
-				change.action = 'refresh-css'
-			} else if (path.endsWith('.base') || path.endsWith('.tpl')) {
-				change.action = 'refresh-x'
-			} else if (path.endsWith('.lng')) {
-				cacheLang([app])
-			} else if (path.endsWith('static.php')) {
-				change.action = 'refresh'
-			}
-		});
 
-		if (apps.has('hrm')) {
-			apps.add('me')
+				return 'log'
+			})
+
+			if (actionGroup['refresh']?.length) {
+				clientChanges.push({
+					actions: {refresh: actionGroup['refresh']},
+					filter: info => info.app === app
+				})
+				delete actionGroup['refresh']
+				continue
+			}
+			if (actionGroup['refresh-lang']?.length) {
+				delete actionGroup['refresh-lang']
+				cacheLang([app])
+			}
+			if (actionGroup['refresh-css']?.length) {
+				delete actionGroup['update-css']
+			}
+			if (actionGroup['refresh-js']?.length) {
+				delete actionGroup['update-js']
+			}
+
+			const compileChanges = [
+				...actionGroup['update-js'] || [],
+				...actionGroup['update-css'] || [],
+				...actionGroup['update-tpl'] || [],
+			]
+			
+			// compile js, css files
+			const src_map = await compile(app, compileChanges.map(c => c.path)) || {}
+			compileChanges.forEach(c => {
+				c.code = src_map[c.path] || {}
+			})
+
+			clientChanges.push({
+				actions: actionGroup,
+				filter: info => info.app === app
+			})
 		}
 
-		// broadcast to apps
-		return Array.from(apps)
+		return clientChanges
 	}
 }
 

@@ -7,6 +7,7 @@
 		\hrm\Tpl::disableCache();
 		$tpl = ['', ''];
 		// $tpl = \hrm\Tpl::quickLoad($file); => Todo
+		// $tpl = \Ajax::html(); => Todo
 
 		return [
 			'html' => $tpl[0] ?? '',

@@ -49,6 +49,8 @@
 
 
 	function defineApp ($app) {
+		if (defined("ROOT_DIR")) return;
+		
 		define("ROOT_DIR", GDIR."/$app");
 		define("APPKEY", $app);
 		define("CACHE_DIR", WORK_DIR."/data/base/{$app}.cache");

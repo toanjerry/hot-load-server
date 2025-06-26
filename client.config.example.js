@@ -23,13 +23,3 @@ export default {
 		langCache: ['hrm']
 	}
 }
-
-export function clientByPath (path, hot) {
-	var app = path.split(/[\\/]/)[0]
-
-	return app === hot.rootFolder ? 'default' : 'base';
-}
-
-export function clientByHost (host) {
-	return host.endsWith('base.beta') ? 'base' : 'default';
-}

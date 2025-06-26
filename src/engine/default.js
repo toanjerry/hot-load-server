@@ -1,20 +1,30 @@
+import {arrayGroup} from '../helper/array.js';
+
 const DefaultEngine = {
 	name: "default",
 	process: (changes, hot) => {
-		changes.forEach(change => {
-			const path = change.path
-	
-			change.action = 'log'
+		const clientChanges = []
+		const actionGroup = arrayGroup(changes, (c) => {
+			const path = c.path
 			if (path.includes('public')) {
 				if (path.endsWith('.js')) {
-					change.action = 'refresh-js'
+					return 'refresh-js'
 				} else if (path.endsWith('css')) {
-					change.action = 'refresh-css'
+					return 'refresh-css'
 				} else {
-					change.action = 'refresh'
+					return 'refresh'
 				}
 			}
-		});
+
+			return 'log'
+		})
+
+		clientChanges.push({
+			actions: actionGroup,
+			filter: info => info.app === 'hot'
+		})
+
+		return clientChanges
 	}
 }
 

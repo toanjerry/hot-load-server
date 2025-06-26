@@ -1,6 +1,9 @@
 <?php
 
-	$fileList = array_unique(array_filter(explode(',', $argv[1] ?? '')));
+	$app = $argv[1] ?? '';
+	if (!$app) return;
+
+	$fileList = array_unique(array_filter(explode(',', $argv[2] ?? '')));
 	if (!$fileList) {
 		return;
 	}
@@ -13,14 +16,12 @@
 	require_once('parser/css.php');
 	require_once('parser/template.php');
 
+	defineApp($app);
+
 	$parsed_files = [];
 	foreach ($fileList as $f) {
 		$file = str_replace('\\', '/', $f);
 		$parts = explode('/', $file);
-		$app = $parts[0] ?? '';
-		if (!$app) continue;
-
-		defineApp($app);
 
 		$ext = pathinfo($file, PATHINFO_EXTENSION);
 		if ($ext === "js") {

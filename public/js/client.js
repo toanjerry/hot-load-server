@@ -25,9 +25,7 @@ class HotClient {
 		this.ws.addEventListener('open', () => {
 			this.ws.send(JSON.stringify({
 				type: 'register',
-				app: HMR.location.app,
-				origin: HMR.location.origin,
-				domain: HMR.location.domain,
+				info: HMR.clientInfo
 			}));
 			console.log('HOT: connected')
 		});
@@ -45,9 +43,9 @@ class HotClient {
 			if (data.type === 'change') {
 				HMR.overlay()
 				try {
-					HotEngine.process(data.changes || [])
+					HotEngine.process(data.actions || {})
 					if (HMR.engine) {
-						HMR.engine.process(data.changes || [])
+						HMR.engine.process(data.actions || {})
 					}
 				} catch (err) {
 					console.error('HOT: Fail to process message', err)
@@ -64,8 +62,8 @@ class HotClient {
 
 const HMR = new function () {
 	this.connect = async function (host, port) {
-		this.detectLocation()
-		this.server = `${this.location.protocol}//${host}:${port}`
+		this.detectInfo()
+		this.server = `${this.clientInfo.protocol}//${host}:${port}`
 		this.initClient()
 	}
 
@@ -107,8 +105,8 @@ const HMR = new function () {
 		document.body.appendChild(script);
 	}
 
-	this.detectLocation = () => {
-		this.location = {
+	this.detectInfo = () => {
+		this.clientInfo = {
 			app: window?.Client?.base?.app || 'hot',
 			domain: window?.Client?.domain || window.location.host,
 			protocol: window.location.protocol,
@@ -174,14 +172,14 @@ const HotEngine = new function () {
 	this.UPDATE_TPL = 'update-tpl'
 
 	this.process = (changes) => {
-		for (const change of changes) {
-			if (change.action === HotEngine.REFRESH) {
+		for (const action in changes) {
+			if (action === HotEngine.REFRESH) {
 				return window.location.reload();
 			}
-			if (change.action === HotEngine.REFRESH_JS) {
-				this.refreshJS(change.url, change.pattern)
-			} else if (change.action === HotEngine.REFRESH_CSS) {
-				this.refreshCSS(change.url, change.pattern)
+			if (action === HotEngine.REFRESH_JS) {
+				this.refreshJS(changes[action])
+			} else if (action === HotEngine.REFRESH_CSS) {
+				this.refreshCSS(changes[action])
 			}
 		}
 	}
@@ -227,11 +225,18 @@ const HotEngine = new function () {
 		});
 	}
 
-	this.refreshJS = (url, pattern) => {
-		const targets = this.getJSTargets(url, pattern)
-		if (!targets || !targets.length) return
+	this.refreshJS = (changes) => {
+		const scripts = new Set()
+		changes.forEach(c => {
+			const targets = this.getJSTargets(c.url, c.pattern)
+			for (const t of targets) {
+				if (!scripts.has(t)) scripts.add(t)
+			}
+		})
+		
+		if (!scripts || !scripts.size) return
 
-		targets.forEach(target => {
+		scripts.forEach(target => {
 			const newScript = document.createElement('script');
 			newScript.src = target.src
 			newScript.async = target.async;
@@ -241,11 +246,16 @@ const HotEngine = new function () {
 		})
 	}
 
-	this.refreshCSS = (url, pattern) => {
-		const targets = this.getCSSTargets(url, pattern)
-		if (!targets || !targets.length) return
+	this.refreshCSS = (changes) => {
+		const links = new Set()
+		changes.forEach(c => {
+			const targets = this.getCSSTargets(c.url, c.pattern)
+			for (const t of targets) {
+				if (!links.has(t)) links.add(t)
+			}
+		})
 
-		targets.forEach(target => {
+		links.forEach(target => {
 			const newLink = target.cloneNode();
 			newLink.href = target.href;
 			target.parentNode.insertBefore(newLink, target.nextSibling);

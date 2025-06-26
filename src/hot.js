@@ -10,7 +10,6 @@ import path from 'path';
 import {appendContent, injectScript, rewriteContent, minimizeContent, getContent, removeScript} from './helper/file.js'
 import {isOriginAllowed} from './helper/index.js'
 
-import {clientByPath} from '../client.config.js'
 import { existsSync, mkdirSync } from 'fs';
 
 class HotServer {
@@ -22,6 +21,7 @@ class HotServer {
 		this.rootFolder = path.basename(this.root);
 		this.plugins = config.plugins || [];
 		this.engines = {}
+		this.pause = false
 	
 		this.init()
 	}
@@ -143,7 +143,7 @@ class HotServer {
 					return this.restart()
 				}
 			}
-			let clientId = clientByPath(change.path, this)
+			const clientId = this.getClientConfig(change.path).id || 'default'
 			if (!data[clientId]) {
 				data[clientId] = []
 			}
@@ -156,17 +156,23 @@ class HotServer {
 
 	async commit(clientChanges) {
 		for (const clientId in clientChanges) {
-			const changes = clientChanges[clientId]
-			let apps = []
+			const changes = []
 
 			const engine = await this.getEngine(clientId)
-
 			if (engine?.process) {
-				apps = await engine.process(changes, this)
+				changes.push(...await engine.process(clientChanges[clientId], this))
+			}
+
+			if (!changes.length) {
+				changes.push({changes: {log: clientChanges[clientId]}, filter: info => info.app === 'hot'})
 			}
 				
-			this.ws.broadcast({type: 'change', changes}, apps || [])
+			this.ws.broadcast(changes)
 		}
+	}
+
+	getClientConfig (info, byPath = true) {
+		return this.config?.clients.find(c => (byPath ? c?.matchPath(info, this) : c?.match(info, this))) || {}
 	}
 
 	async getEngine(clientId) {

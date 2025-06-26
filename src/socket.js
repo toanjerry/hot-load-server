@@ -1,8 +1,6 @@
 import { WebSocketServer } from 'ws';
 import { isOriginAllowed } from './helper/index.js';
 
-import {clientByHost} from '../client.config.js'
-
 class SocketServer {
 	constructor(hot) {
 		this.hot = hot
@@ -25,23 +23,17 @@ class SocketServer {
 		return isOriginAllowed(origin, this.hot.config.domains || [this.hot.domain]);
 	}
 
-	handleClientRegistration(ws, data) {
-		const info = {
-			app: data.app || '',
-			origin: data.origin,
-			domain: data.domain || '',
-			connectedAt: new Date()
-		};
+	handleClientRegistration(ws, info) {
+		info.connectedAt = new Date()
 
 		this.clients.set(ws, info);
 		
-		console.info(`Connected: ${data.app} - ${data.origin}`);
+		console.info(`Connected: ${info.app || 'App NA'} - ${info.origin || 'URL NA'}`);
 		
 		// send config of client
-		const clientId = clientByHost(info.domain) || 'default'
 		ws.send(JSON.stringify({
 			type: 'config',
-			opts: this.hot.config?.clients[clientId] || {}
+			opts: this.hot.getClientConfig(info, false)
 		}));
 	}
 
@@ -55,7 +47,7 @@ class SocketServer {
 				try {
 					const data = JSON.parse(message);
 					if (data.type === 'register') {
-						this.handleClientRegistration(ws, data);
+						this.handleClientRegistration(ws, data.info || {});
 					}
 				} catch (err) {
 					console.error('Error processing message:', err);
@@ -69,22 +61,22 @@ class SocketServer {
 			});
 		});
 	}
+	
+	broadcast(changes) {
+		changes.forEach(c => {
+			const payload = JSON.stringify({type: 'change', actions: c.actions});
 
+			for (const [client, info] of this.clients) {
+				if (c.filter && !c.filter(info)) {
+					continue;
+				}
 
-	broadcast(payload, apps) {
-		payload = JSON.stringify(payload);
-
-		apps.push('hot')
-
-		for (const [client, info] of this.clients) {
-			if (!apps.includes(info.app)) {
-				continue;
+				if (client.readyState === WebSocket.OPEN) {
+					client.send(payload);
+				}
 			}
+		});
 
-			if (client.readyState === WebSocket.OPEN) {
-				client.send(payload);
-			}
-		}
 	}
 }
 
