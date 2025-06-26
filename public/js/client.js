@@ -127,7 +127,7 @@ const HMR = new function () {
 		if (override) {
 			content.innerText = newMsg;
 		} else {
-			content.innerText += newMsg;
+			content.innerText += '\n'+newMsg;
 		}
 
 		overlay.style.display = newMsg ? 'flex' : 'none';
@@ -157,6 +157,9 @@ const HMR = new function () {
 		msgBox.style.padding = '2rem';
 		msgBox.style.boxShadow = '0 2px 16px rgba(0,0,0,0.2)';
 		msgBox.style.color = 'red';
+		msgBox.style.width = '75%';
+		msgBox.style.maxHeight = '90%';
+		msgBox.style.fontSize = '20px'
 
 		overlay.appendChild(msgBox);
 		document.body.appendChild(overlay);
