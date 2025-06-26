@@ -10,7 +10,7 @@ const BaseEngine = {
 		}
 	},
 	process: async (changes, hot) => {
-		changes = arrayGroup(changes, c => c.path.split(/[\\/]/)[0])
+		changes = arrayGroup(changes, c => c.path.split('/')[0])
 
 		const clientChanges = []
 		for (const app in changes) {

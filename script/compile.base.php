@@ -19,8 +19,7 @@
 	defineApp($app);
 
 	$parsed_files = [];
-	foreach ($fileList as $f) {
-		$file = str_replace('\\', '/', $f);
+	foreach ($fileList as $file) {
 		$parts = explode('/', $file);
 
 		$ext = pathinfo($file, PATHINFO_EXTENSION);

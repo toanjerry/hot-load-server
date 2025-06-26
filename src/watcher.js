@@ -13,7 +13,7 @@ class FileWatcher {
 			.on('change', path => this.dispatch('change', path))
 			.on('unlink', path => this.dispatch('delete', path));
 
-		console.info(`Watching for changes in: ${this.cwd || '\\'}`);
+		console.info(`Watching for changes in: ${this.cwd || '/'}`);
 
 		return this;
 	}
@@ -22,7 +22,7 @@ class FileWatcher {
 		if (this.hot.pause) return
 		const change = {
 			event,
-			path,
+			path: path.replace(/\\/g, '/'),
 			time: new Date().toISOString()
 		}
 

@@ -172,15 +172,15 @@ const HotEngine = new function () {
 	this.UPDATE_TPL = 'update-tpl'
 
 	this.process = (changes) => {
-		for (const action in changes) {
-			if (action === HotEngine.REFRESH) {
-				return window.location.reload();
-			}
-			if (action === HotEngine.REFRESH_JS) {
-				this.refreshJS(changes[action])
-			} else if (action === HotEngine.REFRESH_CSS) {
-				this.refreshCSS(changes[action])
-			}
+		if (changes[HotEngine.REFRESH]) {
+			return window.location.reload();
+		}
+
+		if (changes[HotEngine.REFRESH_JS]) {
+			this.refreshJS(changes[HotEngine.REFRESH_JS])
+		}
+		if (changes[HotEngine.REFRESH_CSS]) {
+			this.refreshCSS(changes[HotEngine.REFRESH_CSS])
 		}
 	}
 

@@ -4,18 +4,16 @@ HotEngine.create(new function () {
 		reconnectInterval: 3000,
 	}
 	this.process = function (changes) {
-		for (const action in changes) {
-			if (action === HotEngine.UPDATE_JS) {
-				changes[action].forEach(change => updateJS(change.code))
-			} else if (action === HotEngine.UPDATE_CSS) {
-				changes[action].forEach(change => updateCSS(change.code, change.url, change.pattern))
-			} else if (action === 'update-tpl') {
-				// updateJS(change.js, change.file_id)
-			} else if (action === HotEngine.REFRESH_X) {
-				AP.xRefresh()
-			}
+		if (changes[HotEngine.REFRESH_X]) {
+			AP.xRefresh()
 		}
 
+		if (changes[HotEngine.UPDATE_CSS]) {
+			changes[HotEngine.UPDATE_CSS].forEach(change => updateCSS(change.code, change.url, change.pattern))
+		}
+		if (changes[HotEngine.UPDATE_JS]) {
+			changes[HotEngine.UPDATE_JS].forEach(change => updateJS(change.code))
+		}
 	}
 	function updateJS (code) {
 		if (!code.js) return
