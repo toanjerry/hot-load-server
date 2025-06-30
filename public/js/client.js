@@ -118,12 +118,13 @@ const HMR = new function () {
 
 	this.overlay = function (msg = '', data, override = true) {
 		if (!this.opts.overlay) {
+			overlay.style.display = 'none'
 			return
 		}
 
 		const overlay = document.getElementById('hmr-overlay');
 		const content = document.getElementById('hmr-overlay-content');
-		const newMsg = msg + '\n' + JSON.stringify(data) + '\n';
+		const newMsg = [msg, JSON.stringify(data)].filter(e=>e).join('\n');
 		if (override) {
 			content.innerText = newMsg;
 		} else {

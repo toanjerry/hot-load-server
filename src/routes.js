@@ -32,6 +32,12 @@ export const Routes = (app, hot) => {
 
 		res.json(clientsList);
 	});
+
+	app.get('/injects/remove', (req, res) => {
+		const rs = hot.removeInjected();
+
+		res.json(rs);
+	});
 };
 
 export default router;

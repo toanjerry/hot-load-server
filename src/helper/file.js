@@ -30,11 +30,9 @@ export function appendContent (target, src, isPath = true) {
 }
 
 export function rewriteContent (target, src, isPath = true) {
-	if (!src) return true
 	if (isPath) {
 		src = getContent(src)
 	}
-	if (!src) return true
 
 	try {
 		fs.writeFileSync(target, src, 'utf-8');

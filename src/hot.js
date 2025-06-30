@@ -175,7 +175,7 @@ class HotServer {
 		return this.config?.clients.find(c => (byPath ? c?.matchPath(info, this) : c?.match(info, this))) || {}
 	}
 
-	async getEngine(clientId) {
+	async getEngine (clientId) {
 		const config = this.config?.clients[clientId] || {}
 		const file = config.engine || clientId
 
@@ -283,11 +283,23 @@ class HotServer {
 				injectedFiles.push(entry)
 			})
 
-			this.#writeInjectedFiles(injectedFiles)
 		}
+
+		this.#writeInjectedFiles(injectedFiles)
 	}
 
-	#getInjectedFiles() {
+	removeInjected () {
+		let injectedFiles = this.#getInjectedFiles()
+		injectedFiles.forEach(file => {
+			removeScript(file)
+		});
+
+		this.#writeInjectedFiles([])
+
+		return injectedFiles
+	}
+
+	#getInjectedFiles () {
 		const files = getContent(path.join(this.cacheDir, '.injected'))
 
 		return files.split("\n")
