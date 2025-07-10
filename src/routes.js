@@ -32,9 +32,9 @@ export const Routes = (app, hot) => {
 
 		res.json(clientsList);
 	});
-
-	app.get('/injects/remove', (req, res) => {
-		const rs = hot.removeInjected();
+	
+	app.get('/clients/remove', (req, res) => {
+		const rs = hot.injecter.remove();
 
 		res.json(rs);
 	});

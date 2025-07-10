@@ -1,25 +1,34 @@
-export default {
-	default: {
+export default [
+	{
+		id: 'default',
 		overlay: true, //show error on client
+		entryPoints: './public/index.html', // file inject code init hot reload
 		engine: 'default', // engine for resolve hot load file in server(/src/engine) and client(/public/engine)
-		entryPoints: './public/index.html', // files inject code init hot reload
-		inject: {
+		inject: { // config for injecting js to client
 			combine: false, // set true will combine all code hot load (client.js, engine) and inject to entry point, use when client cannot load file js from hot load server cuz of Content-Security-Policy
-			minimize: true // minimize js, css
-		}
+			minimize: false // minimize js, css
+		},
+		matchFile: (path, hot) => path.split('/')[0] === hot.rootFolder, // matching checker for file
+		match: (info, hot) => info.app === 'hot' // matching checker for socket client
 	},
-	base: {
+	{
+		id: 'base',
 		overlay: true,
 		engine: 'base',
-		entryPoints: [
-			// hrm
-			'../../data/base/hrm.cache/tcache/a.js.45201d9b0ba7c4521973d136efdd23d5d0426a117efd68cf282128df57077f6evi.cch',
-			'../../data/base/hrm.cache/tcache/a.js.45201d9b0ba7c4521973d136efdd23d5d0426a117efd68cf282128df57077f6een.cch',
-		],
 		inject: {
 			combine: true,
-			minimize: false
+			minimize: true
 		},
-		langCache: ['hrm']
+		apps: ['hrm'],
+		entryPoints: (client) => {
+			const apps = client.apps || []
+			const files = [
+				'a.js.45201d9b0ba7c4521973d136efdd23d5d0426a117efd68cf282128df57077f6evi.cch',
+				'a.js.45201d9b0ba7c4521973d136efdd23d5d0426a117efd68cf282128df57077f6een.cch'
+			];
+			return apps.flatMap(app => files.map(f => `../../data/base/${app}.cache/tcache/${f}`));
+		},
+		matchFile: (path, hot) => app !== hot.rootFolder,
+		match: (info, hot) => info.host.endsWith('base.beta')
 	}
-}
+]

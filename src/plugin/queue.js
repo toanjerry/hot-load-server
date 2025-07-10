@@ -1,5 +1,3 @@
-import fs from 'fs';
-
 class HMRQueue {
 	constructor(opts = {}) {
 		this.queue = []
@@ -39,21 +37,18 @@ class HMRQueue {
 	}
 }
 
-function QueuePlugin() {
+export default function QueuePlugin (debounceTime = 150) {
 	return {
 		name: 'hmr-queue',
-		configureServer(server) {
-			const originalDispatch = server.dispatch
+		configureServer (hot) {
+			const originalDispatch = hot.dispatch
 
 			const queue = new HMRQueue({
-				debounceTime: 150,
-				process: originalDispatch.bind(server)
+				debounceTime,
+				process: originalDispatch.bind(hot)
 			})
-			server.dispatch = function (changes) {
-				queue.add(changes)
-			}
+
+			hot.dispatch = (changes) => queue.add(changes)
 		}
 	}
 }
-
-export default QueuePlugin

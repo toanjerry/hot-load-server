@@ -5,9 +5,7 @@ const BaseEngine = {
 	name: "Base",
 	init: (hot) => {
 		const config = hot.config?.clients?.base || {}
-		if (config?.langCache?.length) {
-			cacheLang(config.langCache)
-		}
+		cacheLang(config.apps)
 	},
 	process: async (changes, hot) => {
 		changes = arrayGroup(changes, c => c.path.split('/')[0])

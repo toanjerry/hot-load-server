@@ -1,16 +1,15 @@
 import express from 'express';
 import cors from 'cors';
 import https from 'https';
+import path from 'path';
 
 import { Routes } from './routes.js';
 
 import SocketServer from './socket.js';
 import FileWatcher from './watcher.js';
-import path from 'path';
-import {appendContent, injectScript, rewriteContent, minimizeContent, getContent, removeScript} from './helper/file.js'
-import {isOriginAllowed} from './helper/index.js'
+import {isOriginAllowed} from './helper/index.js';
 
-import { existsSync, mkdirSync } from 'fs';
+import ClientInjecter from './injecter.js';
 
 class HotServer {
 	constructor(config) {
@@ -27,7 +26,6 @@ class HotServer {
 	}
 
 	init () {
-		this.initFolders()
 		this.initServer()
 		
 		this.ws = new SocketServer(this);
@@ -39,18 +37,8 @@ class HotServer {
 			}
 			console.info(`Plugin "${plugin.name || ''}" loaded`)
 		});
-	}
 
-	initFolders () {
-		this.cacheDir = path.join(this.root, 'cache');
-		if (!existsSync(this.cacheDir)) {
-			mkdirSync(this.cacheDir, { recursive: true });
-		}
-
-		this.bundleDir = path.join(this.root, 'public', 'bundle')
-		if (!existsSync(this.bundleDir)) {
-			mkdirSync(this.bundleDir, { recursive: true });
-		}
+		this.injecter = new ClientInjecter(this)
 	}
 
 	getCors() {
@@ -143,7 +131,7 @@ class HotServer {
 					return this.restart()
 				}
 			}
-			const clientId = this.getClientConfig(change.path).id || 'default'
+			const clientId = this.getClient(change.path).id || 'default'
 			if (!data[clientId]) {
 				data[clientId] = []
 			}
@@ -152,6 +140,10 @@ class HotServer {
 		}
 
 		this.commit(data)
+	}
+
+	getClient (info, isFile = true) {
+		return this.config?.clients.find(c => isFile ? c?.matchFile(info, this) : c?.match(info, this)) || {}
 	}
 
 	async commit(clientChanges) {
@@ -171,10 +163,6 @@ class HotServer {
 		}
 	}
 
-	getClientConfig (info, byPath = true) {
-		return this.config?.clients.find(c => (byPath ? c?.matchPath(info, this) : c?.match(info, this))) || {}
-	}
-
 	async getEngine (clientId) {
 		const config = this.config?.clients[clientId] || {}
 		const file = config.engine || clientId
@@ -188,125 +176,6 @@ class HotServer {
 		}
 
 		return this.engines[file]
-	}
-
-	async injectClient() {
-		const filePath = {
-			client: {
-				path: path.join(this.root, 'public', 'js', 'client.js'),
-				url: '/inject/client.js'
-			},
-			index: {
-				path: path.join(this.bundleDir, 'index.js'),
-				url: '/bundle/index.js'
-			},
-			index_min: {
-				path: path.join(this.bundleDir, 'index.min.js'),
-				url: '/bundle/index.min.js'
-			},
-		}
-
-		let injectedFiles = this.#getInjectedFiles()
-		injectedFiles.forEach(file => {
-			removeScript(file)
-		});
-
-		// build file index.js
-		rewriteContent(filePath.index.path, filePath.client.path)
-		appendContent(filePath.index.path, `HMR.connect('${this.config.host}',${this.config.port})`, false)
-
-		// build file index.min.js
-		rewriteContent(filePath.index_min.path, filePath.index.path)
-		await minimizeContent(filePath.index_min.path)
-
-		injectedFiles = []
-		// inject JS code to client entry
-		for (const clientId in this.config.clients || {}) {
-			if (clientId === 'default') continue
-			
-			const config = this.config.clients[clientId]
-			// get all entry points
-			let entryPoints = config.entryPoints || ''
-			if (!entryPoints.length) {
-				continue
-			}
-			if (typeof entryPoints === 'string') {
-				entryPoints = [entryPoints]
-			}
-
-			// get files inject
-			let files_inject = []
-			if (config?.inject?.minimize) {
-				files_inject.push('index_min')
-			} else {
-				files_inject.push('index')
-			}
-
-			if (config.engine) {
-				// cache engine file path
-				if (config.engine && !filePath[config.engine]) {
-					filePath[config.engine] = { path: path.join(this.root, 'public', 'engine', `${config.engine}.js`) }
-				}
-				// add engine file to combine
-				if (config?.inject?.combine) {
-					files_inject.push(config.engine)
-				}
-			}
-			
-			// inject code to each entry point
-			entryPoints.forEach(entry => {
-				console.log(`injected: ${clientId} - ${entry}`)
-				entry = path.join(this.root, entry);
-
-				if (config?.inject?.combine) {
-					let content = ''
-					// Try to append each file, break if appendContent returns false
-					files_inject.forEach(f => {
-						content += '\n'+getContent(filePath[f].path)
-					})
-	
-					if (entry.endsWith('.html')) {
-						injectScript(entry, `<script>${content}</script>`)
-					} else {
-						injectScript(entry, content)
-					}
-				} else {
-					files_inject.forEach(f => {
-						if (entry.endsWith('.html')) {
-							injectScript(entry, `<script src="${filePath[f].url}" defer async></script>`)
-						} else {
-							injectScript(entry, filePath[f].path, true)
-						}
-					})
-				}
-
-				injectedFiles.push(entry)
-			})
-
-		}
-
-		this.#writeInjectedFiles(injectedFiles)
-	}
-
-	removeInjected () {
-		let injectedFiles = this.#getInjectedFiles()
-		injectedFiles.forEach(file => {
-			removeScript(file)
-		});
-
-		this.#writeInjectedFiles([])
-
-		return injectedFiles
-	}
-
-	#getInjectedFiles () {
-		const files = getContent(path.join(this.cacheDir, '.injected'))
-
-		return files.split("\n")
-	}
-
-	#writeInjectedFiles(injectedFiles) {
-		rewriteContent(path.join(this.cacheDir, '.injected'), injectedFiles.join("\n"), false)
 	}
 }
 

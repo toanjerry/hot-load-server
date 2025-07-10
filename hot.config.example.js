@@ -26,7 +26,7 @@ const config = {
 	// file watcher config for chokidar
 	watch: {
 		cwd: path.resolve(process.cwd(), process.env.CWD),
-		files: ['**/*.js', '**/*.css', '**/*.html', '**/*.base', '**/*.tpl', '**/*.lng'],
+		files: ['**/*.js', '**/*.css', '**/*.html', '*/apps/*/view/**/*.base', '*/apps/*/view/**/*.tpl', '**/*.lng'],
 		ignored: [
 			// common folder
 			'**/node_modules/**',
@@ -41,7 +41,7 @@ const config = {
 			'account/**',
 			'api/**',
 			'databases/**',
-			// not relate front-end folders
+			// in app backend logic folder
 			'*/dev/**',
 			'*/tests/**',
 			'*/test/**',
@@ -49,6 +49,11 @@ const config = {
 			'*/conf/**',
 			'*/apps/api/**',
 			'*/apps/*/action/**',
+			'*/apt/layout/**',
+			'*/apt/helper/**',
+			'*/apt/template/**',
+			'*/apt/theme/**',
+			'*/apt/static/image/**',
 			// not relate front-end files
 			'**/*.php',
 			'**/*.md',
@@ -63,7 +68,10 @@ const config = {
 		persistent: true,
 		ignoreInitial: true,
 	},
-	plugins: [QueuePlugin()],
+	// plugins
+	plugins: [
+		QueuePlugin()
+	],
 	// clients config
 	clients: ClientConfig,
 };
