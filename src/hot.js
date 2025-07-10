@@ -164,8 +164,8 @@ class HotServer {
 	}
 
 	async getEngine (clientId) {
-		const config = this.config?.clients[clientId] || {}
-		const file = config.engine || clientId
+		const client = this.config?.clients[clientId] || {}
+		const file = client.engine || clientId
 
 		if (!this.engines[file]) {
 			this.engines[file] = await import(`./engine/${file}.js`).then(mod => mod.default || mod).catch((e) => console.log(e))

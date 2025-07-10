@@ -58,14 +58,14 @@ export default class ClientInjecter {
 			}
 
 			// get files inject
-			let filesInject = [client?.inject?.minimize ? 'index_min' : 'index']
+			let filesInject = [(client?.inject?.minimize || true) ? 'index_min' : 'index']
 			if (client.engine) {
 				// cache engine file path
 				if (client.engine && !this.files[client.engine]) {
 					this.files[client.engine] = { path: path.join(this.root, 'public', 'engine', `${client.engine}.js`) }
 				}
 				// add engine file to combine
-				if (client?.inject?.combine) {
+				if (client?.inject?.combine || true) {
 					filesInject.push(client.engine)
 				}
 			}
@@ -75,7 +75,7 @@ export default class ClientInjecter {
 				console.log(`injected: ${client.id} - ${entry}`)
 				entry = path.join(this.root, entry);
 
-				if (client?.inject?.combine) {
+				if (client?.inject?.combine || true) {
 					let content = ''
 
 					filesInject.forEach(f => {

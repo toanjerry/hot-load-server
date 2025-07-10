@@ -14,11 +14,6 @@ export default [
 	{
 		id: 'base',
 		overlay: true,
-		engine: 'base',
-		inject: {
-			combine: true,
-			minimize: true
-		},
 		apps: ['hrm'],
 		entryPoints: (client) => {
 			const apps = client.apps || []
@@ -28,7 +23,7 @@ export default [
 			];
 			return apps.flatMap(app => files.map(f => `../../data/base/${app}.cache/tcache/${f}`));
 		},
-		matchFile: (path, hot) => app !== hot.rootFolder,
+		matchFile: (path, hot) => path.split('/')[0] !== hot.rootFolder,
 		match: (info, hot) => info.host.endsWith('base.beta')
 	}
 ]
