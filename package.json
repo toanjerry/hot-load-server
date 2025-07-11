@@ -1,11 +1,11 @@
 {
-	"name": "hot-load",
+	"name": "hotload",
 	"version": "1.0.0",
 	"description": "File change monitor for base folder",
 	"type": "module",
 	"main": "server.js",
 	"scripts": {
-		"setup": "npm install && cp .env.example .env && && cp hot.config.js.example hot.config.js && cp client.config.js.example client.config.js",
+		"setup": "npm install && cp .env.example .env && cp hot.config.js.example hot.config.js && cp client.config.js.example client.config.js",
 		"dev": "node server.js",
 		"start": "node server.js"
 	},

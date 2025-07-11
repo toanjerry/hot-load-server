@@ -67,7 +67,7 @@ export default class ClientInjecter {
 			
 			// inject code to each entry point
 			client.entryPoints.forEach(entry => {
-				console.log(`injected: ${client.id} - ${entry}`)
+				console.log(`Inject: ${client.id} - ${entry}`)
 				entry = path.join(this.root, entry);
 
 				if (client?.inject?.combine) {
@@ -102,7 +102,7 @@ export default class ClientInjecter {
 			removeScript(file)
 		});
 
-		console.log('removed injections')
+		console.log('Inject: removed all')
 
 		return this.entries
 	}

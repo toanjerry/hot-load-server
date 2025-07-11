@@ -13,7 +13,7 @@ class FileWatcher {
 			.on('change', path => this.dispatch('change', path))
 			.on('unlink', path => this.dispatch('delete', path));
 
-		console.info(`Watching for changes in: ${this.cwd || '/'}`);
+		console.info(`Watching: ${this.cwd || '/'}`);
 
 		return this;
 	}

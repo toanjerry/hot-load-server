@@ -49,7 +49,7 @@ class HotServer {
 			if (plugin.configureServer) {
 				plugin.configureServer(this)
 			}
-			console.info(`Plugin "${plugin.name || ''}" loaded`)
+			console.info(`Plugin: loaded "${plugin.name || ''}"`)
 		});
 
 		this.injecter = new ClientInjecter(this)
@@ -114,7 +114,9 @@ class HotServer {
 		Routes(app, this);
 
 		this.server.listen(this.config.port, this.config.host, () => {
-			console.info(`Server is running on ${this.url}`);
+			console.info('----------------------------------------------');
+			console.info(`Server is running on: ${this.url}`);
+			console.info('----------------------------------------------');
 		}).on('error', (err) => {
 			if (err.code === 'EACCES') {
 				console.error(`Error: Port ${this.config.port} requires elevated privileges. Please run with administrator rights.`);
@@ -187,7 +189,7 @@ class HotServer {
 
 		if (!this.engines[file]) {
 			this.engines[file] = await import(`./engine/${file}.js`).then(mod => mod.default || mod).catch((e) => console.log(e))
-			console.info(`Engine "${file}" loaded`)
+			console.info(`Engine: loaded "${file}"`)
 			if (this.engines[file]?.init) {
 				this.engines[file]?.init(this)
 			}
