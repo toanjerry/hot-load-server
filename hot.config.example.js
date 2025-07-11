@@ -6,7 +6,6 @@ import ClientConfig from './client.config.js'
 
 import QueuePlugin from './src/plugin/queue.js'
 
-// Load environment variables
 dotenv.config();
 
 const config = {

@@ -33,7 +33,7 @@ class SocketServer {
 		// send config of client
 		ws.send(JSON.stringify({
 			type: 'config',
-			opts: this.hot.getClient(info, false)
+			opts: this.hot.matchClient(info, false)
 		}));
 	}
 

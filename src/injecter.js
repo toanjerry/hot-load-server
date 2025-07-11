@@ -6,8 +6,8 @@ import {appendContent, injectScript, rewriteContent, minimizeContent, getContent
 export default class ClientInjecter {
 	constructor (hot) {
 		this.hot = hot
-		this.clients = this.hot.config.clients || []
 		this.root = this.hot.root
+		this.entries = []
 
 		this.initFolders()
 
@@ -28,10 +28,10 @@ export default class ClientInjecter {
 	}
 
 	initFolders () {
-		this.cacheDir = path.join(this.root, 'cache');
-		if (!existsSync(this.cacheDir)) {
-			mkdirSync(this.cacheDir, { recursive: true });
-		}
+		// this.cacheDir = path.join(this.root, 'cache');
+		// if (!existsSync(this.cacheDir)) {
+		// 	mkdirSync(this.cacheDir, { recursive: true });
+		// }
 
 		this.bundleDir = path.join(this.root, 'public', 'bundle')
 		if (!existsSync(this.bundleDir)) {
@@ -42,13 +42,8 @@ export default class ClientInjecter {
 	async inject() {
 		await this.#bundle()
 
-		this.#getInjected().forEach(file => {
-			removeScript(file)
-		});
-
-		const injectEntries = []
 		// inject JS code to client entry
-		for (const client of this.clients || []) {
+		for (const client of this.hot.clients) {
 			if (client.id === 'default' || !client.entryPoints) continue
 			
 			if (typeof client.entryPoints === 'string') {
@@ -58,14 +53,14 @@ export default class ClientInjecter {
 			}
 
 			// get files inject
-			let filesInject = [(client?.inject?.minimize || true) ? 'index_min' : 'index']
+			let filesInject = [client?.inject?.minimize ? 'index_min' : 'index']
 			if (client.engine) {
 				// cache engine file path
 				if (client.engine && !this.files[client.engine]) {
 					this.files[client.engine] = { path: path.join(this.root, 'public', 'engine', `${client.engine}.js`) }
 				}
 				// add engine file to combine
-				if (client?.inject?.combine || true) {
+				if (client?.inject?.combine) {
 					filesInject.push(client.engine)
 				}
 			}
@@ -75,7 +70,7 @@ export default class ClientInjecter {
 				console.log(`injected: ${client.id} - ${entry}`)
 				entry = path.join(this.root, entry);
 
-				if (client?.inject?.combine || true) {
+				if (client?.inject?.combine) {
 					let content = ''
 
 					filesInject.forEach(f => {
@@ -97,24 +92,19 @@ export default class ClientInjecter {
 					})
 				}
 
-				injectEntries.push(entry)
+				this.entries.push(entry)
 			})
 		}
-
-		this.#cacheInjected(injectEntries)
 	}
 
 	remove () {
-		const entries = this.#getInjected()
-		entries.forEach(file => {
+		this.entries.forEach(file => {
 			removeScript(file)
 		});
 
-		this.#cacheInjected([])
-
 		console.log('removed injections')
 
-		return entries
+		return this.entries
 	}
 
 	async #bundle () {

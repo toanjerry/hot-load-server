@@ -78,7 +78,7 @@ export function injectScript(target, script, isPath = false) {
 					content += `\n${script}`;
 				}
 			} else {
-				script = `//<hotload>${script}//</hotload>`
+				script = `//<hotload>\n${script}\n//</hotload>`
 				content += `\n${script}`;
 			}
 

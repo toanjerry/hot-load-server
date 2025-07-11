@@ -2,11 +2,8 @@ import {compile, cacheLang} from '../helper/base.js';
 import {arrayGroup} from '../helper/array.js';
 
 const BaseEngine = {
-	name: "Base",
-	init: (hot) => {
-		const config = hot.config?.clients?.base || {}
-		cacheLang(config.apps)
-	},
+	name: 'Base',
+	init: (hot) => cacheLang(hot.getClient('base')?.apps),
 	process: async (changes, hot) => {
 		changes = arrayGroup(changes, c => c.path.split('/')[0])
 

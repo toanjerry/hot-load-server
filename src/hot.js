@@ -12,6 +12,19 @@ import {isOriginAllowed} from './helper/index.js';
 import ClientInjecter from './injecter.js';
 
 class HotServer {
+	defaultClient = {
+		id: 'default',
+		overlay: true,
+		entryPoints: './public/index.html',
+		engine: 'default',
+		inject: {
+			combine: false,
+			minimize: false
+		},
+		matchFile: (path, hot) => path.split('/')[0] === hot.rootFolder,
+		match: (info, hot) => info.app === 'hot'
+	}
+
 	constructor(config) {
 		this.config = config;
 		this.domain = `${config.host}:${config.port}`
@@ -20,6 +33,7 @@ class HotServer {
 		this.rootFolder = path.basename(this.root);
 		this.plugins = config.plugins || [];
 		this.engines = {}
+		this.clients = [this.defaultClient, ...config.clients || []]
 		this.pause = false
 	
 		this.init()
@@ -131,7 +145,7 @@ class HotServer {
 					return this.restart()
 				}
 			}
-			const clientId = this.getClient(change.path).id || 'default'
+			const clientId = this.matchClient(change.path).id || 'default'
 			if (!data[clientId]) {
 				data[clientId] = []
 			}
@@ -142,8 +156,12 @@ class HotServer {
 		this.commit(data)
 	}
 
-	getClient (info, isFile = true) {
-		return this.config?.clients.find(c => isFile ? c?.matchFile(info, this) : c?.match(info, this)) || {}
+	matchClient (info, isFile = true) {
+		return this.clients.find(c => isFile ? c?.matchFile(info, this) : c?.match(info, this)) || {}
+	}
+
+	getClient (id) {
+		return this.clients.find(c => c.id === id) || {}
 	}
 
 	async commit(clientChanges) {
@@ -164,7 +182,7 @@ class HotServer {
 	}
 
 	async getEngine (clientId) {
-		const client = this.config?.clients[clientId] || {}
+		const client = this.getClient(clientId)
 		const file = client.engine || clientId
 
 		if (!this.engines[file]) {
