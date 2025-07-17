@@ -35,6 +35,6 @@ export async function cacheLang(apps, lang = 'vi') {
 			return
 		}
 	
-		console.log(`${app}: Lang cached`)
+		console.log(`Cache: lang ${app}`)
 	});
 }

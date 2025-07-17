@@ -4,7 +4,7 @@
 	define("ENV", 0);
 	define("WORK_DIR", 'C:\xampp\htdocs\baseroot');
 	define("AP_ROOT", WORK_DIR."\ap");
-	define("GDIR", 'C:\xampp\htdocs\baseroot\base');
+	define("GDIR", WORK_DIR.'\base');
 	define("SYS_DIR", GDIR."\system");
 	define('EXT_STATIC_DIR', GDIR."\static");
 	
