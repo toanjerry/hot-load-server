@@ -197,7 +197,11 @@ const HotEngine = new function () {
 		HMR.engine = engine
 		HMR.client.setOpts(HMR.engine.opts)
 
-		console.log(`HOT: Engine "${engine.name || ''}" is loaded`)
+		if (HMR.engine.init) {
+			HMR.engine.init()
+		}
+
+		console.log(`Engine: "${engine.name || ''}" is inited`)
 	}
 
 	this.getCSSTargets = (url, pattern) => {
@@ -207,13 +211,9 @@ const HotEngine = new function () {
 		};
 
 		const regexp = pattern ? new RegExp(pattern) : null
-		const links = Array.from(document.getElementsByTagName('link'));
+		const links = Array.from(document.getElementsByTagName('link'))
 
-		return links.filter(link => {
-			if (link.rel !== 'stylesheet' || !link.href) return false
-			if (url === link.href) return true;
-			return regexp ? regexp.test(link.href) : false
-		});
+		return links.filter(l => l.rel === 'stylesheet' && (url === l.href || (regexp && regexp.test(l.href))))
 	}
 
 	this.getJSTargets = (url, pattern) => {
@@ -222,13 +222,9 @@ const HotEngine = new function () {
 			pattern = null
 		}
 		const regexp = pattern ? new RegExp(pattern) : null
-		const scripts = Array.from(document.getElementsByTagName('script'));
+		const scripts = Array.from(document.getElementsByTagName('script'))
 
-		return scripts.filter(script => {
-			if (!script.src) return false
-			if (url === script.src) return true;
-			return regexp ? regexp.test(script.src) : false
-		});
+		return scripts.filter(s => url === s.src || (regexp && regexp.test(s.src)))
 	}
 
 	this.refreshJS = (changes) => {

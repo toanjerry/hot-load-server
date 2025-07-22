@@ -11,10 +11,18 @@
 		// REMOVE COMMENTS
 		$content = preg_replace(['/^\/\*(.*?)\*\//usm'], '', $content);
 		$content = preg_replace(['/\n+\t*\s*\n+/'], "\n", $content);
-	
-		// parse 
+
+		// translate
+
+		if (in_array($lang, \Lang::LEGACY_LANGUAGES)){
+			$content = preg_replace_callback('`\{\{([a-zA-Z0-9\.\,\_\-\+\<\>\$\(\)\'\%\:\|\/\p{L} \@\/\&\;~]+)\}\}`ui', function ($m) {
+				return \hmr\Lang::safeTranslate($m[1]);
+			}, $content);
+		}
+
+		// parse
 		$content = \APTemplate::parseJSBlock($content);
-		$content = \JS::parseBackTick($content);		
+		$content = \JS::parseBackTick($content);
 		
 		// add tag
 		$content = preg_replace_callback("/\"\<\@declare\s+([a-zA-Z0-9\/\,\.\#\-]+)\>\"\;/", function ($m) {
@@ -55,11 +63,6 @@
 			"<td$1><div class='cell-lead'>",
 			"<td$1><div class='cell'>",
 		], $content);
-					
-		// translate
-		$content = preg_replace_callback('`\{\{([a-zA-Z0-9\.\,\_\-\+\<\>\$\(\)\'\%\:\|\/\p{L} \@\/\&\;~]+)\}\}`ui', function ($m) {
-			return \hmr\Lang::safeTranslate($m[1]);
-		}, $content);
 		
 		return $content;
 	}
