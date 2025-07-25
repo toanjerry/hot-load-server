@@ -116,6 +116,7 @@ class HotServer {
 		this.server.listen(this.config.port, this.config.host, () => {
 			console.info('----------------------------------------------');
 			console.info(`Server is running on: ${this.url}`);
+			console.info('Reload page to connect');
 			console.info('----------------------------------------------');
 		}).on('error', (err) => {
 			if (err.code === 'EACCES') {
