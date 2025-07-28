@@ -1,3 +1,5 @@
+import { spawn, exec } from 'child_process';
+
 export function isOriginAllowed (origin, domains = []) {
 	if (!origin) {
 		return true;
@@ -16,24 +18,27 @@ export function isOriginAllowed (origin, domains = []) {
 	});
 }
 
-export async function runCmd (cmd) {
-	const { exec } = await import('child_process');
-
-	try {
-		return await new Promise((resolve) => {
-			exec(cmd, (err, stdout, stderr) => {
-				if (err) {
-					resolve({ err: `${err.message}\n${stdout}` });
-					return;
-				}
-				if (stderr) {
-					console.error(`Stderr: ${stderr}`);
-				}
-
-				resolve({ msg: stdout });
-			});
+export function execCmd (cmd, args) {
+	return new Promise((resolve, reject) => {
+		exec(`${cmd} ${args.join(' ')}`, (err, stdout, stderr) => {
+			if (stderr) console.error(`Stderr: ${stderr}`)
+			if (err) reject(err)
+			else resolve(stdout)
 		});
-	} catch (e) {
-		return { err: e }
-	}
+	});
+}
+
+export function spawnCmd(cmd, args) {
+	return new Promise((resolve, reject) => {
+		const child = spawn(cmd, args, { encoding: 'utf-8' });
+		let stdout = '';
+		let stderr = '';
+		child.stdout.on('data', data => { stdout += data; });
+		child.stderr.on('data', data => { stderr += data; });
+		child.on('close', code => {
+			if (code === 0) resolve(stdout)
+			else reject(`${stdout}\n${stderr}`)
+			if (stderr) console.log(`Stderr: ${stderr}`)
+		});
+	});
 }

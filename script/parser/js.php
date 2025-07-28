@@ -13,7 +13,6 @@
 		$content = preg_replace(['/\n+\t*\s*\n+/'], "\n", $content);
 
 		// translate
-
 		if (in_array($lang, \Lang::LEGACY_LANGUAGES)){
 			$content = preg_replace_callback('`\{\{([a-zA-Z0-9\.\,\_\-\+\<\>\$\(\)\'\%\:\|\/\p{L} \@\/\&\;~]+)\}\}`ui', function ($m) {
 				return \hmr\Lang::safeTranslate($m[1]);
@@ -47,7 +46,6 @@
 		$content = preg_replace_callback("/\{\%\s*svg\s+([a-zA-Z0-9\.\/]+)}/", function ($m) {
 			return \Template::loadSVG($m[1]);
 		}, $content);
-		
 		
 		// Replace custom tag ~ support: tdc
 		$content = str_replace(

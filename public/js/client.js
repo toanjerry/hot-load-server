@@ -165,6 +165,59 @@ const HMR = new function () {
 		overlay.appendChild(msgBox);
 		document.body.appendChild(overlay);
 	}
+
+	this.getCallStack = (from = 0) => {
+		const lines = new Error().stack.split('\n');
+		return lines
+			.slice(1+from)
+			.map(line => {
+				const match = line.match(/at (\S+)/); // extract function name
+				return match ? match[1] : '(anonymous)';
+			})
+	}
+
+	this.assignObjectRecursive = function (o1, o2) {
+		for (const key in o2) {
+			if (!Object.prototype.hasOwnProperty.call(o2, key)) continue
+
+			if (typeof o1[key] !== typeof o2[key]) {
+				o1[key] = o2[key]
+			} else if (typeof o1[key] === 'function') {
+				if (o1[key].toString().trim().replaceAll(/(\s*\n\s*){2,}/g, '\n') !== o2[key].toString().trim().replaceAll(/(\s*\n\s*){2,}/g, '\n')) {
+					o1[key] = o2[key]
+				}
+			} else if (typeof o1[key] === 'object') {
+				let isPureObject = !Array.isArray(o1[key]) &&
+					!(o1[key] instanceof Date) &&
+					!(o1[key] instanceof RegExp) &&
+					!(o1[key] instanceof Map) &&
+					!(o1[key] instanceof Set) &&
+					!(o1[key] instanceof WeakMap) &&
+					!(o1[key] instanceof WeakSet)
+
+				if (isPureObject) this.assignObjectRecursive(o1[key], o2[key])
+			} else {
+				o1[key] = o2[key]
+			}
+		}
+	}
+
+	this.isEqual = function(o1, o2) {
+		if (o1 === o2) return true
+		if (typeof o1 !== typeof o2) return false;
+
+		const keys1 = Object.keys(o1);
+		const keys2 = Object.keys(o2);
+
+		if (keys1.length !== keys2.length) return false;
+
+		for (const key of keys1) {
+			if (!keys2.includes(key)) return false;
+			if (!this.isEqual(o1[key], o2[key])) return false;
+		}
+
+		return true;
+	}
 };
 
 const HotEngine = new function () {

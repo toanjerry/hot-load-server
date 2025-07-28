@@ -52,7 +52,8 @@ HotEngine.create(new function () {
 
 function StageManager () {
 	this.render = new StageRender()
-	this.watcher = new ObjectWatcher()
+	this.watch = new ObjectWatcher()
+	this.apiCache = new APICache()
 	this.middlewares = [
 		// tracking rerun code => prevent from unexpectation changing data
 		{
@@ -66,20 +67,20 @@ function StageManager () {
 				]
 				if (!arrCheck.includes(ctx.t)) return
 
-				ctx.next = false
-				ctx.rs = 0
-				ctx.args.forEach(a => {
-					const idx = ARR.indexOf(ctx.t, a, (e, a) => {
+				for (const k in ctx.args) {
+					const idx = ARR.indexOf(ctx.t, ctx.args[k], (e, a) => {
 						if (ctx.t === AP.rules) return e.pattern === a.pattern
 						if (ctx.t === SuperTable.mdefs) return e.id === a.id
 
 						return false
 					})
+					if (idx !== -1) {
+						ctx.t[idx] = ctx.args[k]
+						ctx.args[k] = null
+					}
+				}
 
-					if (idx !== -1) return ctx.t[idx] = a
-
-					ctx.rs += ctx.mid.origin.call(ctx.t, a)
-				})
+				ctx.args = ctx.args.filter(item => item !== null);
 			}
 		},
 		// tracking actions for rerendering => keep state on screen
@@ -87,13 +88,13 @@ function StageManager () {
 			id: 'window.eval',
 			ctx: window,
 			fn: 'eval',
-			run: (ctx, js) => this.render.update(js)
+			run: (ctx) => this.render.update(ctx.args[0])
 		},
 		{
 			id: 'document.ready',
 			ctx: $.fn,
 			fn: 'ready',
-			run: (ctx, fn) => this.render.update(`(${fn.toString()})()`)
+			run: (ctx) => this.render.update(`(${ctx.args[0].toString()})()`)
 		},
 		{
 			id: 'form.submit',
@@ -105,7 +106,7 @@ function StageManager () {
 			id: 'rewriteRedirect',
 			ctx: AP,
 			fn: 'rewriteRedirect',
-			run: (ctx, url) => AP.rewriteCheck(url) && this.render.update(ctx.mid.origin.bind(ctx.mid.ctx, url), url, ctx.mid.id)
+			run: (ctx) => AP.rewriteCheck(ctx.args[0]) && this.render.update(ctx.mid.origin.bind(ctx.mid.ctx, ...ctx.args), ctx.args[0], ctx.mid.id)
 		},
 		{
 			id: 'redirect',
@@ -117,12 +118,12 @@ function StageManager () {
 			id: 'dialog',
 			ctx: AP,
 			fn: 'dialog',
-			passRs: true,
+			runAfter: true,
 			run: (ctx) => {
 				const state = this
 				const originShow = ctx.rs.show
 				ctx.rs.show = function () {
-					const ct = getCallStack()
+					const ct = HMR.getCallStack(2)
 					if (ct.includes('AP.rewriteRedirect')) {
 						state.render.updateParent({dialog: this._id})
 					} else {
@@ -143,10 +144,35 @@ function StageManager () {
 			id: 'Rewrite.obj',
 			ctx: Rewrite,
 			fn: 'obj',
-			run: (ctx, module, handlers) => {
-				this.watcher.add(module, {
-					change: () => ctx.mid.origin.call(ctx.mid.ctx, module, handlers),
+			run: (ctx) => {
+				this.watch.add(ctx.args[0], {
+					change: () => ctx.mid.origin.call(ctx.mid.ctx, ...ctx.args),
 				})
+			}
+		},
+		// cache api data
+		{
+			id: 'AP.post',
+			ctx: AP,
+			fn: 'post',
+			run: (ctx) => {
+				if (ctx.args[1]?.direct_load) {
+					this.apiCache.reset()
+					return
+				}
+				const originCb = ctx.args[2]
+				if (!originCb) return
+
+				const cacheData = this.apiCache.get(ctx.args[0], ctx.args[1])
+				if (cacheData) {
+					ctx.next = false
+					return originCb(cacheData)
+				}
+				
+				ctx.args[2] = function (res) {
+					if (res.good()) HMR.state.apiCache.add(ctx.args[0], ctx.args[1], res)
+					originCb(res)
+				}
 			}
 		},
 	]
@@ -159,57 +185,22 @@ function StageManager () {
 			m.origin = m.ctx[m.fn]
 
 			m.ctx[m.fn] = function (...args) {
-				const runCtx = {mid: m, t: this, args, rs: null}
-				if (m.passRs) {
-					runCtx.rs = m.origin.call(this, ...args)
-					m.run.call(state, runCtx, ...args)
+				const runCtx = {t: this, args, rs: null, mid: m, next: true}
+				if (m.runAfter) {
+					runCtx.rs = m.origin.call(this, ...runCtx.args)
+					m.run.call(state, runCtx)
 				} else {
-					m.run.call(state, runCtx, ...args)
-					if (runCtx.next !== false) {
-						runCtx.rs = m.origin.call(this, ...args)
+					m.run.call(state, runCtx)
+					if (runCtx.next) {
+						runCtx.rs = m.origin.call(this, ...runCtx.args)
 					}
 				}
 
 				return runCtx.rs
 			}
 
-			this.assignObjectRecursive(m.ctx[m.fn], m.origin)
+			HMR.assignObjectRecursive(m.ctx[m.fn], m.origin)
 		})
-	}
-	this.assignObjectRecursive = function (o1, o2) {
-		for (const key in o2) {
-			if (!Object.prototype.hasOwnProperty.call(o2, key)) continue
-
-			if (typeof o1[key] !== typeof o2[key]) {
-				o1[key] = o2[key]
-			} else if (typeof o1[key] === 'function') {
-				if (o1[key].toString().trim().replaceAll(/(\s*\n\s*){2,}/g, '\n') !== o2[key].toString().trim().replaceAll(/(\s*\n\s*){2,}/g, '\n')) {
-					o1[key] = o2[key]
-				}
-			} else if (typeof o1[key] === 'object') {
-				let isPureObject = !Array.isArray(o1[key]) &&
-					!(o1[key] instanceof Date) &&
-					!(o1[key] instanceof RegExp) &&
-					!(o1[key] instanceof Map) &&
-					!(o1[key] instanceof Set) &&
-					!(o1[key] instanceof WeakMap) &&
-					!(o1[key] instanceof WeakSet)
-
-				if (isPureObject) this.assignObjectRecursive(o1[key], o2[key])
-			} else {
-				o1[key] = o2[key]
-			}
-		}
-	}
-	function getCallStack (from = 2) {
-		const lines = new Error().stack.split('\n');
-
-		return lines
-			.slice(1+from)
-			.map(line => {
-				const match = line.match(/at (\S+)/); // extract function name
-				return match ? match[1] : '(anonymous)';
-			})
 	}
 }
 
@@ -269,11 +260,11 @@ function StageRender () {
 			+'\nfor (const name in origin_objs) {\n'
 			+'	const n_o = getFunctionByName(name)\n'
 			+'	if (!n_o) continue\n'
-			+'	HMR.state.assignObjectRecursive(origin_objs[name], n_o)\n'
+			+'	HMR.assignObjectRecursive(origin_objs[name], n_o)\n'
 			+'}\n'
 			+objs.map(o => `${o}=origin_objs['${o}']`).join('\n')
 			+'\n'
-			+objs.map(o => `HMR.state.watcher.change(${o})`).join('\n')
+			+objs.map(o => `HMR.state.watch.change(${o})`).join('\n')
 	}
 	this.parseRender = function (js, id = null, type = null) {
 		const r = {id, js, type, time: Date.now()}
@@ -303,9 +294,11 @@ function StageRender () {
 function ObjectWatcher () {
 	this.objs = {}
 	this.add = (obj, events) => {
+		if (!obj) return
 		this.objs[obj.constructor.name] = events
 	}
 	this.dispatch = (event, obj) => {
+		if (!obj) return
 		const name = obj.constructor.name
 		if (this.objs[name] && this.objs[name][event]) {
 			this.objs[name][event]()
@@ -313,4 +306,28 @@ function ObjectWatcher () {
 	}
 	this.change = obj => this.dispatch('change', obj)
 	this.reset = obj => this.dispatch('reset', obj)
+}
+
+function APICache (ttl = 30) {
+	this._data = {}
+	this.ttl = ttl*60*1000
+	this.add = (url, body, data) => {
+		let d = this._data[url]
+		if (!d) d = this._data[url] = {}
+		d.body = JSON.parse(JSON.stringify(body))
+		delete d.body?.__code
+		delete d.body?.__otp
+		delete d.body?.__sessionid
+		d.data = data
+		d.expires = Date.now() + this.ttl
+	}
+	this.get = (url, body) => {
+		const d = this._data[url]
+		if (!d) return null
+		if (d.expires < Date.now()) return this.remove(url) && null
+		if (HMR.isEqual(d.body, body)) return d.data
+		return null
+	}
+	this.remove = () => delete this._data[url]
+	this.reset = () => this._data = {}
 }
