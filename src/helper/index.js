@@ -20,8 +20,7 @@ export function isOriginAllowed (origin, domains = []) {
 
 export function execCmd (cmd, args) {
 	return new Promise((resolve, reject) => {
-		exec(`${cmd} ${args.join(' ')}`, (err, stdout, stderr) => {
-			if (stderr) console.error(`Stderr: ${stderr}`)
+		exec(`${cmd} ${args.join(' ')}`, (err, stdout) => {
 			if (err) reject(err)
 			else resolve(stdout)
 		});
@@ -38,7 +37,6 @@ export function spawnCmd(cmd, args) {
 		child.on('close', code => {
 			if (code === 0) resolve(stdout)
 			else reject(`${stdout}\n${stderr}`)
-			if (stderr) console.log(`Stderr: ${stderr}`)
 		});
 	});
 }

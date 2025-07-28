@@ -16,7 +16,7 @@ export async function compile(app, files) {
 			continue;
 		}
 		try {
-			p.value = JSON.parse(p.value)
+			p.value = JSON.parse(p.value.match(/{.*}/s)[0] || '{}');
 		} catch (err) {
 			p.value = {}
 			console.error({err})
