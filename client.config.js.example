@@ -1,3 +1,6 @@
+import {md5} from './src/helper/index.js'
+import {getStatus} from './src/helper/file.js'
+
 export default [
 	// 	id: 'default',
 	// 	overlay: true, // show error on client
