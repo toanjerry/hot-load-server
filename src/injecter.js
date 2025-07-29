@@ -49,7 +49,7 @@ export default class ClientInjecter {
 			if (typeof client.entryPoints === 'string') {
 				client.entryPoints = [client.entryPoints]
 			} else if (typeof client.entryPoints === 'function') {
-				client.entryPoints = client.entryPoints(client)
+				client.entryPoints = client.entryPoints(client, this.hot)
 			}
 
 			// get files inject
@@ -110,7 +110,7 @@ export default class ClientInjecter {
 	async #bundle () {
 		// build file index.js
 		rewriteContent(this.files.index.path, this.files.client.path)
-		appendContent(this.files.index.path, `HMR.connect('${this.hot.config.host}',${this.hot.config.port})`, false)
+		appendContent(this.files.index.path, `HMR.connect('${this.hot.config.protocol}://${this.hot.config.host}:${this.hot.config.port}')`, false)
 
 		// build file index.min.js
 		rewriteContent(this.files.index_min.path, this.files.index.path)

@@ -10,12 +10,7 @@ const router = express.Router();
 
 // Serve static files from /public directory based on the requested path
 router.get('/:file(*)', (req, res, next) => {
-	let filePath;
-	if (!req.params.file || req.params.file === '') {
-		filePath = path.join(__dirpublic, 'index.html');
-	} else {
-		filePath = path.join(__dirpublic, req.params.file);
-	}
+	let filePath = path.join(__dirpublic, req.params.file || 'index.html');
 	res.sendFile(filePath, err => {
 		if (err) next(); // Pass to next middleware if file not found
 	});

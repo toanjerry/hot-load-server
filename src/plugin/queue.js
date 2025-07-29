@@ -37,7 +37,7 @@ class HMRQueue {
 	}
 }
 
-export default function QueuePlugin (debounceTime = 150) {
+export default function QueuePlugin (debounceTime = 100) {
 	return {
 		name: 'hmr-queue',
 		configureServer (hot) {

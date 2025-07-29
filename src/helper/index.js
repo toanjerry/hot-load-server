@@ -1,4 +1,5 @@
-import { spawn, exec } from 'child_process';
+import { spawn, exec } from 'child_process'
+import crypto from 'crypto'
 
 export function isOriginAllowed (origin, domains = []) {
 	if (!origin) {
@@ -27,7 +28,7 @@ export function execCmd (cmd, args) {
 	});
 }
 
-export function spawnCmd(cmd, args) {
+export function spawnCmd (cmd, args) {
 	return new Promise((resolve, reject) => {
 		const child = spawn(cmd, args, { encoding: 'utf-8' });
 		let stdout = '';
@@ -39,4 +40,8 @@ export function spawnCmd(cmd, args) {
 			else reject(`${stdout}\n${stderr}`)
 		});
 	});
+}
+
+export function md5 (str) {
+	return crypto.createHash('md5').update(str).digest('hex')
 }

@@ -89,6 +89,10 @@ export function injectScript(target, script, isPath = false) {
 	}
 }
 
+export function getStatus (path) {
+	return fs.statSync(path)
+}
+
 export async function minimizeContent(target) {
 	if (fs.existsSync(target)) {
 		const code = fs.readFileSync(target, 'utf8');

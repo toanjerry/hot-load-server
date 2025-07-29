@@ -1,6 +1,7 @@
 import express from 'express';
 import cors from 'cors';
 import https from 'https';
+import http from 'http';
 import path from 'path';
 
 import { Routes } from './routes.js';
@@ -61,21 +62,11 @@ class HotServer {
 		domains.push(this.domain);
 		
 		return {
-			origin: (origin, callback) => {
-				// Always allow requests from our local development server
-				if (origin === 'https://localhost:3000' || origin === 'https://127.0.0.1:3000') {
-					return callback(null, true);
-				}
-				
-				// Allow null origin (like direct file access or Postman)
-				if (!origin) {
-					return callback(null, true);
-				}
+			origin: (origin, cb) => {
+				if (!origin) return cb(null, true);
 
 				// Check if the origin matches our allowed domains
-				if (isOriginAllowed(origin, domains)) {
-					return callback(null, true);
-				}
+				if (isOriginAllowed(origin, domains)) return cb(null, true);
 		
 				callback(new Error(`Not allowed by CORS - Only ${domains.join(', ')} are allowed`));
 			},
@@ -100,16 +91,11 @@ class HotServer {
 			next();
 		});
 
-		// Serve static files with proper MIME types
-		app.use('/hot', express.static('public/hot', {
-			setHeaders: (res, path) => {
-				if (path.endsWith('.js')) {
-					res.setHeader('Content-Type', 'application/javascript');
-				}
-			}
-		}));
-
-		this.server = https.createServer(this.config.ssl, app);
+		if (this.config.protocol === 'https') {
+			this.server = https.createServer(this.config.ssl, app);
+		} else {
+			this.server = http.createServer(app);
+		}
 
 		Routes(app, this);
 

@@ -61,9 +61,9 @@ class HotClient {
 }
 
 const HMR = new function () {
-	this.connect = async function (host, port) {
+	this.connect = async function (server) {
 		this.detectInfo()
-		this.server = `${this.clientInfo.protocol}//${host}:${port}`
+		this.server = server
 		this.initClient()
 	}
 

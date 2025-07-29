@@ -16,19 +16,21 @@ export default [
 		inject: {
 			combine: true,
 			minimize: true,
+			file: 'static/js/a.js' // Should select files of framework cuz of stability of file => prevent from overwritting file (loss injected code) when reload page
 		},
-		apps: ['hrm'], // add app here
-		entryPoints: (client) => {
+		apps: ['account'], // add app here
+		cacheDir: '../../data/base', // cache folder
+		entryPoints: (client, hot) => {
 			const apps = client.apps || []
-			const files = [
-				// Should select files of framework cuz of stability of file => prevent from overwritting file (loss injected code) when reload page
-				// You better recheck file name in your local for matching postfix hash of file, this is common file a.js of framework
-				// located in C:\xampp\htdocs\baseroot\data\base\{app}.cache\tcache\{file_name}
-				// You better include all versions of file in all language
-				'a.js.45201d9b0ba7c4521973d136efdd23d5d0426a117efd68cf282128df57077f6evi.cch',
-				'a.js.45201d9b0ba7c4521973d136efdd23d5d0426a117efd68cf282128df57077f6een.cch'
-			];
-			return apps.flatMap(app => files.map(f => `../../data/base/${app}.cache/tcache/${f}`));
+			const path = `${hot.config.watch.cwd}/${client.inject.file}`.replaceAll('\\', '/')
+			const filename = path.split('/').pop()
+			const fileStatus = getStatus(path)
+			
+			const hash = md5(path) + md5(`${fileStatus.size}-${Math.floor(fileStatus.mtimeMs/1000)}-${fileStatus.uid}`)
+			return apps.flatMap(app => [
+				`${client.cacheDir}/${app}.cache/tcache/${filename}.${hash}vi.cch`,
+				`${client.cacheDir}/${app}.cache/tcache/${filename}.${hash}en.cch`
+			])
 		},
 		matchFile: (path, hot) => path.split('/')[0] !== hot.rootFolder,
 		match: (info, hot) => info.domain === 'base.beta'
