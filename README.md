@@ -51,7 +51,7 @@ This will launch the hot-reload server using your configuration.
     - Defines client-side hot-reload behavior and app selection.
     - Specifies which apps to enable hot-reload for via the `apps` array.
     - Configures how and where hot-reload scripts are injected using `entryPoints` (can be a path, array, or function).
-    - Controls JS/CSS asset handling with `inject.combine` (combine all assets) and `inject.minimize` (minify assets).
+    - Controls JS/CSS asset handling with `inject.minimize` (minify assets).
     - Provides custom matching logic for files (`matchFile`) and socket clients (`match`).
     - Example options:
       - `id`: Unique identifier for the client config.

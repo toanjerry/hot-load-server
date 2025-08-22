@@ -1,5 +1,5 @@
-import {compile, cacheLang} from '../helper/base.js';
-import {arrayGroup} from '../helper/array.js';
+import {compile, cacheLang} from '../../src/helper/base.js';
+import {arrayGroup} from '../../src/helper/array.js';
 
 const BaseEngine = {
 	name: 'Base',
@@ -13,38 +13,38 @@ const BaseEngine = {
 				const path = c.path
 				if (path.endsWith('.js')) {
 					c.pattern = '.*\.base\.beta\/js\/'
-					return c.event === 'delete' ? 'refresh-js' : 'update-js'
+					return c.event === 'delete' ? 'reload-js' : 'update-js'
 				} else if (path.endsWith('.css')) {
 					c.pattern = '.*\.base\.beta\/css\/'
-					return 'refresh-css'
+					return 'reload-css'
 				} else if (path.endsWith('.base') || path.endsWith('.tpl')) {
-					return 'refresh-x'
+					return 'ajax'
 				} else if (path.endsWith('.lng')) {
-					return 'refresh-lang'
+					return 'reload-lang'
 				} else if (path.endsWith('static.php')) {
-					return 'refresh'
+					return 'reload'
 				}
 
 				return 'log'
 			})
 
-			if (actionGroup['refresh']?.length) {
+			if (actionGroup['reload']?.length) {
 				clientChanges.push({
-					actions: {refresh: actionGroup['refresh']},
+					actions: {refresh: actionGroup['reload']},
 					filter: info => info.app === app
 				})
-				delete actionGroup['refresh']
+				delete actionGroup['reload']
 				continue
 			}
-			if (actionGroup['refresh-lang']?.length) {
-				delete actionGroup['refresh-lang']
+			if (actionGroup['reload-lang']?.length) {
+				delete actionGroup['reload-lang']
 				cacheLang([app])
 			}
-			if (actionGroup['refresh-css']?.length) {
-				delete actionGroup['update-css']
+			if (actionGroup['reload-css']?.length) {
+				delete actionGroup['reload-css']
 			}
-			if (actionGroup['refresh-js']?.length) {
-				delete actionGroup['update-js']
+			if (actionGroup['reload-js']?.length) {
+				delete actionGroup['reload-js']
 			}
 
 			const compileChanges = [

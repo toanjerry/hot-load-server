@@ -1,4 +1,4 @@
-import {arrayGroup} from '../helper/array.js';
+import { arrayGroup } from '../../src/helper/array.js';
 
 const DefaultEngine = {
 	name: "default",
@@ -8,11 +8,11 @@ const DefaultEngine = {
 			const path = c.path
 			if (path.includes('public')) {
 				if (path.endsWith('.js')) {
-					return 'refresh-js'
+					return 'reload-js'
 				} else if (path.endsWith('css')) {
-					return 'refresh-css'
+					return 'reload-css'
 				} else {
-					return 'refresh'
+					return 'reload'
 				}
 			}
 

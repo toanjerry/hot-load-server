@@ -33,11 +33,7 @@ class HotServer {
 		this.root = process.cwd()
 		this.rootFolder = path.basename(this.root);
 		this.plugins = config.plugins || [];
-		this.engines = {}
-		this.clients = [this.defaultClient, ...config.clients || []]
-		this.pause = false
-	
-		this.init()
+		this.clients = [...config.clients || []]
 	}
 
 	init () {
@@ -54,6 +50,10 @@ class HotServer {
 		});
 
 		this.injecter = new ClientInjecter(this)
+		this.injecter.remove()
+		this.injecter.inject()
+
+		this.clients.forEach(client => client?.engine?.back?.init(this))
 	}
 
 	getCors() {
@@ -102,7 +102,7 @@ class HotServer {
 		this.server.listen(this.config.port, this.config.host, () => {
 			console.info('----------------------------------------------');
 			console.info(`Server is running on: ${this.url}`);
-			console.info('Reload page to connect');
+			console.info('Reload app to connect');
 			console.info('----------------------------------------------');
 		}).on('error', (err) => {
 			if (err.code === 'EACCES') {
@@ -157,7 +157,8 @@ class HotServer {
 		for (const clientId in clientChanges) {
 			const changes = []
 
-			const engine = await this.getEngine(clientId)
+			const client = this.getClient(clientId)
+			const engine = client?.engine?.back
 			if (engine?.process) {
 				changes.push(...await engine.process(clientChanges[clientId], this))
 			}
@@ -168,21 +169,6 @@ class HotServer {
 				
 			this.ws.broadcast(changes)
 		}
-	}
-
-	async getEngine (clientId) {
-		const client = this.getClient(clientId)
-		const file = client.engine || clientId
-
-		if (!this.engines[file]) {
-			this.engines[file] = await import(`./engine/${file}.js`).then(mod => mod.default || mod).catch((e) => console.log(e))
-			console.info(`Engine: loaded "${file}"`)
-			if (this.engines[file]?.init) {
-				this.engines[file]?.init(this)
-			}
-		}
-
-		return this.engines[file]
 	}
 }
 

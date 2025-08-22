@@ -7,7 +7,6 @@ export default [
 	// 	entryPoints: './public/index.html', // file inject code init hot reload, can be path, array of paths, callable recieve client config as param
 	// 	engine: 'default', // engine for resolving hot load, file in server(/src/engine) and client(/public/engine), fallback is engine with name same id
 	// 	inject: { // config for injecting js to client
-	// 		combine: true, // set true will combine all code hot load (client.js, engine) and inject to entry point, use when client cannot load file js from hot load server cuz of Content-Security-Policy or CORS
 	// 		minimize: true // minimize js, css
 	// 	},
 	// 	matchFile: (path, hot) => path.split('/')[0] === hot.rootFolder, // matching checker for file
@@ -17,7 +16,6 @@ export default [
 		overlay: true,
 		engine: 'base',
 		inject: {
-			combine: true,
 			minimize: true,
 			file: 'static/js/a.js' // Should select files of framework cuz of stability of file => prevent from overwritting file (loss injected code) when reload page
 		},

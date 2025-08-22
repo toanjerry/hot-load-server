@@ -14,7 +14,7 @@ export default class ClientInjecter {
 		this.files = {
 			client: {
 				path: path.join(this.root, 'public', 'js', 'client.js'),
-				url: '/inject/client.js'
+				url: '/js/client.js'
 			},
 			index: {
 				path: path.join(this.bundleDir, 'index.js'),
@@ -28,11 +28,6 @@ export default class ClientInjecter {
 	}
 
 	initFolders () {
-		// this.cacheDir = path.join(this.root, 'cache');
-		// if (!existsSync(this.cacheDir)) {
-		// 	mkdirSync(this.cacheDir, { recursive: true });
-		// }
-
 		this.bundleDir = path.join(this.root, 'public', 'bundle')
 		if (!existsSync(this.bundleDir)) {
 			mkdirSync(this.bundleDir, { recursive: true });
@@ -54,42 +49,24 @@ export default class ClientInjecter {
 
 			// get files inject
 			let filesInject = [client?.inject?.minimize ? 'index_min' : 'index']
-			if (client.engine) {
-				// cache engine file path
-				if (client.engine && !this.files[client.engine]) {
-					this.files[client.engine] = { path: path.join(this.root, 'public', 'engine', `${client.engine}.js`) }
-				}
-				// add engine file to combine
-				if (client?.inject?.combine) {
-					filesInject.push(client.engine)
-				}
-			}
+			let engine = client?.engine?.front.toString() || '';
 			
 			// inject code to each entry point
 			client.entryPoints.forEach(entry => {
 				console.log(`Inject: ${client.id} - ${entry}`)
 				entry = path.join(this.root, entry);
 
-				if (client?.inject?.combine) {
-					let content = ''
+				let content = ''
+				filesInject.forEach(f => {
+					content += '\n'+getContent(this.files[f].path)
+				})
 
-					filesInject.forEach(f => {
-						content += '\n'+getContent(this.files[f].path)
-					})
-	
-					if (entry.endsWith('.html')) {
-						injectScript(entry, `<script>${content}</script>`)
-					} else {
-						injectScript(entry, content)
-					}
+				content += `\n${engine}`;
+
+				if (entry.endsWith('.html')) {
+					injectScript(entry, `<script>${content}</script>`)
 				} else {
-					filesInject.forEach(f => {
-						if (entry.endsWith('.html')) {
-							injectScript(entry, `<script src="${this.files[f].url}" defer async></script>`)
-						} else {
-							injectScript(entry, this.files[f].path, true)
-						}
-					})
+					injectScript(entry, content)
 				}
 
 				this.entries.push(entry)
@@ -98,9 +75,7 @@ export default class ClientInjecter {
 	}
 
 	remove () {
-		this.entries.forEach(file => {
-			removeScript(file)
-		});
+		this.entries.forEach(file => removeScript(file));
 
 		console.log('Inject: removed all')
 
@@ -110,20 +85,14 @@ export default class ClientInjecter {
 	async #bundle () {
 		// build file index.js
 		rewriteContent(this.files.index.path, this.files.client.path)
-		appendContent(this.files.index.path, `HMR.connect('${this.hot.config.protocol}://${this.hot.config.host}:${this.hot.config.port}')`, false)
+		const content = `
+			HMR.connect('${this.hot.config.protocol}://${this.hot.config.host}:${this.hot.config.port}')\n
+			HotEngine.load(HotClientEngine)
+		`
+		appendContent(this.files.index.path, content, false)
 
 		// build file index.min.js
 		rewriteContent(this.files.index_min.path, this.files.index.path)
 		await minimizeContent(this.files.index_min.path)
-	}
-
-	#getInjected () {
-		const files = getContent(path.join(this.cacheDir, '.injected'))
-
-		return files.split("\n")
-	}
-
-	#cacheInjected(files) {
-		rewriteContent(path.join(this.cacheDir, '.injected'), files.join("\n"), false)
 	}
 }

@@ -1,14 +1,14 @@
-HotEngine.create(new function () {
-	this.name = 'base'
-	this.opts = {
+const Engine = {
+	name: 'base',
+	opts: {
 		reconnectInterval: 3000,
-	}
-	this.init = function () {
-		HMR.state = new StageManager()
+	},
+	init: function () {
+		HMR.state = new this.StageManager()
 		HMR.state.init()
-	}
-	this.process = function (changes) {
-		if (changes[HotEngine.REFRESH_X]) {
+	},
+	process: function (changes) {
+		if (changes[HotEngine.AJAX]) {
 			AP.xRefresh()
 		}
 
@@ -19,20 +19,20 @@ HotEngine.create(new function () {
 			changes[HotEngine.UPDATE_JS].forEach(change => {
 				if (!change.code.js) return
 				change.code.js = HMR.state.render.keepCodeState(change.code.js)
-				updateJS(change)
+				this.updateJS(change)
 			})
 			HMR.state.render.reload()
 		}
-	}
-	function updateJS (change) {
+	},
+	updateJS: function (change) {
 		try {
 			eval(change.code.js || '')
 		} catch (err) {
 			console.error('HOT: Update JS ', err)
 			HMR.overlay(err, {event: change.event, path: change.path, time: change.time}, false)
 		}
-	}
-	function updateCSS (change) {
+	},
+	updateCSS: function (change) {
 		const targets = HotEngine.getCSSTargets(change.url, change.pattern)
 		if (!targets || !targets.length) return
 		targets.forEach(target => {
@@ -48,9 +48,9 @@ HotEngine.create(new function () {
 			// stylesheet.insertRule(css, stylesheet.cssRules.length);
 		})
 	}
-})
+}
 
-function StageManager () {
+Engine.StageManager = function () {
 	this.render = new StageRender()
 	this.watch = new ObjectWatcher()
 	this.apiCache = new APICache()
@@ -204,7 +204,7 @@ function StageManager () {
 	}
 }
 
-function StageRender () {
+Engine.StageRender = function () {
 	this._rds = []
 	const run = window.eval
 	this.update = function (js, id = null, type = null) {
@@ -254,7 +254,7 @@ function StageRender () {
 		objs = [...objs]
 
 		return 'const origin_objs = {\n\t'
-			+objs.map(o => `'${o}': ${o}`).join(',\n\t')
+			+objs.map(o => `'${o}': getFunctionByName('${o}')`).join(',\n\t')
 			+'\n}\n'
 			+js
 			+'\nfor (const name in origin_objs) {\n'
@@ -262,9 +262,7 @@ function StageRender () {
 			+'	if (!n_o) continue\n'
 			+'	HMR.assignObjectRecursive(origin_objs[name], n_o)\n'
 			+'}\n'
-			+objs.map(o => `${o}=origin_objs['${o}']`).join('\n')
-			+'\n'
-			+objs.map(o => `HMR.state.watch.change(${o})`).join('\n')
+			+objs.map(o => `if(origin_objs['${o}'] !== undefined) (${o}=origin_objs['${o}']) && HMR.state.watch.change(${o})`).join('\n')
 	}
 	this.parseRender = function (js, id = null, type = null) {
 		const r = {id, js, type, time: Date.now()}
@@ -291,7 +289,7 @@ function StageRender () {
 	}
 }
 
-function ObjectWatcher () {
+Engine.ObjectWatcher = function () {
 	this.objs = {}
 	this.add = (obj, events) => {
 		if (!obj) return
@@ -308,7 +306,7 @@ function ObjectWatcher () {
 	this.reset = obj => this.dispatch('reset', obj)
 }
 
-function APICache (ttl = 30) {
+Engine.APICache = function (ttl = 30) {
 	this._data = {}
 	this.ttl = ttl*60*1000
 	this.add = (url, body, data) => {
@@ -331,3 +329,5 @@ function APICache (ttl = 30) {
 	this.remove = () => delete this._data[url]
 	this.reset = () => this._data = {}
 }
+
+export default Engine

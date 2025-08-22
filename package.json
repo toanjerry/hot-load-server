@@ -1,18 +1,17 @@
 {
 	"name": "hotload",
 	"version": "1.0.0",
-	"description": "File change monitor for base folder",
+	"description": "Hot reload server for multiple apps + custom engine for resolving file",
 	"type": "module",
 	"main": "server.js",
 	"scripts": {
-		"setup": "npm install && cp .env.example .env && cp hot.config.js.example hot.config.js && cp client.config.js.example client.config.js",
+		"setup": "npm install && cp hot.config.js.example hot.config.js && cp client.config.js.example client.config.js",
 		"dev": "node server.js",
 		"start": "node server.js"
 	},
 	"dependencies": {
 		"chokidar": "^3.5.3",
 		"cors": "^2.8.5",
-		"dotenv": "^16.3.1",
 		"express": "^4.18.2",
 		"terser": "^5.43.1",
 		"ws": "^8.13.0"

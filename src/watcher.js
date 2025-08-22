@@ -19,7 +19,6 @@ class FileWatcher {
 	}
 
 	async dispatch(event, path) {
-		if (this.hot.pause) return
 		const change = {
 			event,
 			path: path.replace(/\\/g, '/'),
