@@ -13,16 +13,16 @@ export default class ClientInjecter {
 
 		this.files = {
 			client: {
-				path: path.join(this.root, 'public', 'js', 'client.js'),
+				path: path.join(this.root, 'public/js/client.js'),
 				url: '/js/client.js'
 			},
-			index: {
-				path: path.join(this.bundleDir, 'index.js'),
-				url: '/bundle/index.js'
+			hot: {
+				path: path.join(this.bundleDir, 'hot.js'),
+				url: '/bundle/hot.js'
 			},
-			index_min: {
-				path: path.join(this.bundleDir, 'index.min.js'),
-				url: '/bundle/index.min.js'
+			hot_min: {
+				path: path.join(this.bundleDir, 'hot.min.js'),
+				url: '/bundle/hot.min.js'
 			},
 		}
 	}
@@ -48,7 +48,7 @@ export default class ClientInjecter {
 			}
 
 			// get files inject
-			let filesInject = [client?.inject?.minimize ? 'index_min' : 'index']
+			let filesInject = [client?.inject?.minimize ? 'hot_min' : 'hot']
 			let engine = client?.engine?.front.toString() || '';
 			
 			// inject code to each entry point
@@ -84,15 +84,11 @@ export default class ClientInjecter {
 
 	async #bundle () {
 		// build file index.js
-		rewriteContent(this.files.index.path, this.files.client.path)
-		const content = `
-			HMR.connect('${this.hot.config.protocol}://${this.hot.config.host}:${this.hot.config.port}')\n
-			HotEngine.load(HotClientEngine)
-		`
-		appendContent(this.files.index.path, content, false)
+		rewriteContent(this.files.hot.path, this.files.client.path)
+		appendContent(this.files.hot.path, `HMR.connect('${this.hot.config.protocol}://${this.hot.config.host}:${this.hot.config.port}')`, false)
 
 		// build file index.min.js
-		rewriteContent(this.files.index_min.path, this.files.index.path)
-		await minimizeContent(this.files.index_min.path)
+		rewriteContent(this.files.hot_min.path, this.files.hot.path)
+		await minimizeContent(this.files.hot_min.path)
 	}
 }

@@ -12,20 +12,9 @@ import {isOriginAllowed} from './helper/index.js';
 
 import ClientInjecter from './injecter.js';
 
-class HotServer {
-	defaultClient = {
-		id: 'default',
-		overlay: true,
-		entryPoints: './public/index.html',
-		engine: 'default',
-		inject: {
-			combine: false,
-			minimize: false
-		},
-		matchFile: (path, hot) => path.split('/')[0] === hot.rootFolder,
-		match: (info, hot) => info.app === 'hot'
-	}
+import DefaultClient from './default/client.js'
 
+class HotServer {
 	constructor(config) {
 		this.config = config;
 		this.domain = `${config.host}:${config.port}`
@@ -33,7 +22,7 @@ class HotServer {
 		this.root = process.cwd()
 		this.rootFolder = path.basename(this.root);
 		this.plugins = config.plugins || [];
-		this.clients = [...config.clients || []]
+		this.clients = [DefaultClient, ...config.clients || []]
 	}
 
 	init () {

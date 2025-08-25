@@ -1,4 +1,4 @@
-HotEngine.create({
+export default {
 	name: 'default',
 	opts: {
 		reconnectInterval: 3000,
@@ -17,4 +17,4 @@ HotEngine.create({
 			})
 		}
 	}
-})
+}
