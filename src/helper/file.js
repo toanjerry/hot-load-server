@@ -93,7 +93,7 @@ export function getStatus (path) {
 	return fs.statSync(path)
 }
 
-export async function minimizeContent(target) {
+export async function minimizeContent (target) {
 	if (fs.existsSync(target)) {
 		const code = fs.readFileSync(target, 'utf8');
 		await minify(code).then(minified => {

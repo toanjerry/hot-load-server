@@ -49,7 +49,8 @@ export default class ClientInjecter {
 
 			// get files inject
 			let filesInject = [client?.inject?.minimize ? 'hot_min' : 'hot']
-			let engine = client?.engine?.front.toString() || '';
+			let engine = client?.engine?.front || '';
+			console.log("engine path: ", client.engine)
 			
 			// inject code to each entry point
 			client.entryPoints.forEach(entry => {

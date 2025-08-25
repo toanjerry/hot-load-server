@@ -1,4 +1,4 @@
-export default {
+HotEngine.load({
 	name: 'default',
 	opts: {
 		reconnectInterval: 3000,
@@ -17,4 +17,4 @@ export default {
 			})
 		}
 	}
-}
+})

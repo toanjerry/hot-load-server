@@ -42,7 +42,7 @@ class HotServer {
 		this.injecter.remove()
 		this.injecter.inject()
 
-		this.clients.forEach(client => client?.engine?.back?.init(this))
+		this.clients.forEach(client => client?.engine?.back?.init && client.engine.back.init(this))
 	}
 
 	getCors() {
