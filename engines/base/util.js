@@ -86,6 +86,8 @@ export async function compile(app, files) {
 export function cacheLang(apps, lang = 'vi') {
 	if (!apps) return
 
+	console.log(import.meta.dirname)
+
 	apps.forEach(app => {
 		spawnCmd('php', ['./engines/base/scripts/cache.lang.php', app, lang])
 			.then(stdout => console.log(`Cache: lang ${app}`))
