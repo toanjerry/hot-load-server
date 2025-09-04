@@ -8,30 +8,30 @@ export function arrayBulk (arr, size) {
 }
 
 export function arrayUnique(arr, checker) {
-	const seen = new Set();
-	const rs = [];
+	const seen = new Set()
+	const rs = []
 	for (const e of arr) {
-		const key = checker ? checker(e) : e;
+		const key = checker ? checker(e) : e
 		if (!seen.has(key)) {
-			seen.add(key);
-			rs.push(e);
+			seen.add(key)
+			rs.push(e)
 		}
 	}
 	
-	return rs;
+	return rs
 }
 
 export function arrayGroup(arr, keyBuilder) {
-	const groups = {};
+	const groups = {}
 	for (const item of arr) {
-		const key = keyBuilder(item);
+		const key = keyBuilder(item)
 		if (!groups[key]) {
-			groups[key] = [];
+			groups[key] = []
 		}
-		groups[key].push(item);
+		groups[key].push(item)
 	}
 	
-	return groups;
+	return groups
 }
 
 export function arrayFlat (arr) {
@@ -48,12 +48,12 @@ export function arrayFlat (arr) {
 }
 
 export function combineObjs (arr) {
-	const rs = {};
+	const rs = {}
 	for (const obj of arr) {
 		if (obj && typeof obj === 'object' && !Array.isArray(obj)) {
-			Object.assign(rs, obj);
+			Object.assign(rs, obj)
 		}
 	}
 
-	return rs;
+	return rs
 }

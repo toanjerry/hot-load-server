@@ -41,7 +41,6 @@ This will launch the hot-reload server using your configuration.
     - Allows plugin integration (e.g., queue plugin) for extensibility.
     - Defines client configurations and socket options.
     - Example options:
-      - `autoRestart`: Enable/disable automatic server restart on file changes.
       - `watch.files`: Array of glob patterns for files to watch.
       - `watch.ignored`: Array of glob patterns for files/folders to ignore.
       - `ssl.key`, `ssl.cert`, `ssl.ca`: Paths to SSL certificate files.

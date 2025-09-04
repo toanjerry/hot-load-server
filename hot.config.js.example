@@ -1,18 +1,17 @@
-import dotenv from 'dotenv';
-import fs from 'fs';
-import path from 'path';
+import dotenv from 'dotenv'
+import fs from 'fs'
+import path from 'path'
 
 import ClientConfig from './client.config.js'
 
 import QueuePlugin from './src/plugin/queue.js'
 
-dotenv.config();
+dotenv.config()
 
 const config = {
 	host: process.env.HOST || 'localhost',
 	port: process.env.PORT || '3000',
 	protocol: process.env.PROTOCOL || 'http',
-	autoRestart: false,
 	// cors
 	domains: process.env.ALLOWED_DOMAINS ? process.env.ALLOWED_DOMAINS.split(',') : null,
 	credentials: true,
@@ -73,6 +72,6 @@ const config = {
 	],
 	// clients config
 	clients: ClientConfig,
-};
+}
 
-export default config;
+export default config

@@ -1,22 +1,28 @@
 import { spawn, exec } from 'child_process'
-import crypto from 'crypto'
+import { minify } from 'terser'
 
 export function isOriginAllowed (origin, domains = []) {
 	if (!origin) {
-		return true;
+		return true
 	}
 
 	return domains.some(domain => {
 		if (domain.startsWith('*.')) {
 			const regexPattern = domain
 				.replace(/\./g, '\\.')
-				.replace('*\\.', '([a-zA-Z0-9-]+\\.)?');
+				.replace('*\\.', '([a-zA-Z0-9-]+\\.)?')
 
-			return new RegExp(`^https?:\\/\\/${regexPattern}(:\\d+)?$`).test(origin);
+			return new RegExp(`^https?:\\/\\/${regexPattern}(:\\d+)?$`).test(origin)
 		}
 
-		return origin === `http://${domain}` || origin === `https://${domain}`;
-	});
+		return origin === `http://${domain}` || origin === `https://${domain}`
+	})
+}
+
+export async function minimizeCode (code) {
+	const minified = await minify(code)
+
+	return minified.code
 }
 
 export function execCmd (cmd, args) {
@@ -24,24 +30,20 @@ export function execCmd (cmd, args) {
 		exec(`${cmd} ${args.join(' ')}`, (err, stdout) => {
 			if (err) reject(err)
 			else resolve(stdout)
-		});
-	});
+		})
+	})
 }
 
 export function spawnCmd (cmd, args) {
 	return new Promise((resolve, reject) => {
-		const child = spawn(cmd, args, { encoding: 'utf-8' });
-		let stdout = '';
-		let stderr = '';
-		child.stdout.on('data', data => { stdout += data; });
-		child.stderr.on('data', data => { stderr += data; });
+		const child = spawn(cmd, args, { encoding: 'utf-8' })
+		let stdout = ''
+		let stderr = ''
+		child.stdout.on('data', data => { stdout += data })
+		child.stderr.on('data', data => { stderr += data })
 		child.on('close', code => {
 			if (code === 0) resolve(stdout)
 			else reject(`${stdout}\n${stderr}`)
-		});
-	});
-}
-
-export function md5 (str) {
-	return crypto.createHash('md5').update(str).digest('hex')
+		})
+	})
 }

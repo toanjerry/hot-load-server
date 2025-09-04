@@ -40,12 +40,12 @@ const Engine = {
 			// 	if (rule.media && rule.cssRules) {
 			// 		for (let subRule of rule.cssRules) {
 			// 			if (subRule.selectorText === ".responsive") {
-			// 				subRule.style.display = "flex";
+			// 				subRule.style.display = "flex"
 			// 			}
 			// 		}
 			// 	}
 			// }
-			// stylesheet.insertRule(css, stylesheet.cssRules.length);
+			// stylesheet.insertRule(css, stylesheet.cssRules.length)
 		})
 	}
 }
@@ -80,7 +80,7 @@ Engine.StageManager = function () {
 					}
 				}
 
-				ctx.args = ctx.args.filter(item => item !== null);
+				ctx.args = ctx.args.filter(item => item !== null)
 			}
 		},
 		// tracking actions for rerendering => keep state on screen
@@ -270,10 +270,10 @@ Engine.StageRender = function () {
 		if (typeof js === 'string') {
 			if (js.includes('(function(){Query.init({')) {
 				r.id = 'init',
-				r.js = js.replaceAll(/Query\.init[\s\S]*\)\}\)\(\);?/g, '')
+				r.js = js.replaceAll(/Query\.init[\s\S]*\)\}\)\(\)?/g, '')
 			} else if (js.includes('AP.putBaseBlock(')) {
 				r.id = 'inline',
-				r.js = js.replaceAll(/\(function\(\){AP\.putBaseBlock[\s\S]*\)\}\)\(\);?/g, '')
+				r.js = js.replaceAll(/\(function\(\){AP\.putBaseBlock[\s\S]*\)\}\)\(\)?/g, '')
 			}
 			
 			if (r.id) {

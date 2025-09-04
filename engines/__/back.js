@@ -1,11 +1,10 @@
 
-import { arrayGroup } from '../helper/array.js';
+import { arrayGroup } from '../../src/helper/array.js'
 
 export default {
 	name: "default",
-	process: (changes, hot) => {
-		const clientChanges = []
-		const actionGroup = arrayGroup(changes, (c) => {
+	process: (changes) => {
+		return arrayGroup(changes, (c) => {
 			const path = c.path
 			if (path.includes('public')) {
 				if (path.endsWith('.js')) {
@@ -19,12 +18,5 @@ export default {
 
 			return 'log'
 		})
-
-		clientChanges.push({
-			actions: actionGroup,
-			filter: info => info.app === 'hot'
-		})
-
-		return clientChanges
 	}
 }

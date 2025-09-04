@@ -13,10 +13,10 @@ export async function compile(app, files) {
 		const p = rs[idx]
 		if (p.status === 'rejected') {
 			console.error({err: p.reason})
-			continue;
+			continue
 		}
 		try {
-			p.value = JSON.parse(p.value.match(/{.*}/s)[0] || '{}');
+			p.value = JSON.parse(p.value.match(/{.*}/s)[0] || '{}')
 		} catch (err) {
 			p.value = {}
 			console.error({err})
@@ -35,5 +35,5 @@ export function cacheLang(apps, lang = 'vi') {
 		spawnCmd('php', ['./script/cache.lang.php', app, lang])
 			.then(stdout => console.log(`Cache: lang ${app}`))
 			.catch(err => console.error({err}))
-	});
+	})
 }

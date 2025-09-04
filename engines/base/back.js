@@ -1,5 +1,5 @@
-import {compile, cacheLang} from '../../src/helper/base.js';
-import {arrayGroup} from '../../src/helper/array.js';
+import {compile, cacheLang} from '../../src/helper/base.js'
+import {arrayGroup} from '../../src/helper/array.js'
 
 const BaseEngine = {
 	name: 'Base',

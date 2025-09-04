@@ -1,42 +1,42 @@
-import express from 'express';
-import cors from 'cors';
-import https from 'https';
-import http from 'http';
-import path from 'path';
+import express from 'express'
+import cors from 'cors'
+import https from 'https'
+import http from 'http'
+import path from 'path'
 
-import { Routes } from './routes.js';
+import { Routes } from './routes.js'
 
-import SocketServer from './socket.js';
-import FileWatcher from './watcher.js';
-import {isOriginAllowed} from './helper/index.js';
+import SocketServer from './socket.js'
+import FileWatcher from './watcher.js'
+import {isOriginAllowed} from './helper/index.js'
 
-import ClientInjecter from './injecter.js';
+import ClientInjecter from './injecter.js'
 
-import DefaultClient from './default/client.js'
+import DefaultClient from './client.default.js'
 
 class HotServer {
 	constructor(config) {
-		this.config = config;
+		this.config = config
 		this.domain = `${config.host}:${config.port}`
 		this.url = `${config.protocol}://${this.domain}`
 		this.root = process.cwd()
-		this.rootFolder = path.basename(this.root);
-		this.plugins = config.plugins || [];
+		this.rootFolder = path.basename(this.root)
+		this.plugins = config.plugins || []
 		this.clients = [DefaultClient, ...config.clients || []]
 	}
 
 	init () {
 		this.initServer()
 		
-		this.ws = new SocketServer(this);
-		this.watch = new FileWatcher(this).start();
+		this.ws = new SocketServer(this)
+		this.watch = new FileWatcher(this).start()
 
 		this.plugins.forEach(plugin => {
 			if (plugin.configureServer) {
 				plugin.configureServer(this)
 			}
 			console.info(`Plugin: loaded "${plugin.name || ''}"`)
-		});
+		})
 
 		this.injecter = new ClientInjecter(this)
 		this.injecter.remove()
@@ -47,17 +47,17 @@ class HotServer {
 
 	getCors() {
 		const config = this.config
-		const domains = config.domains || [];
-		domains.push(this.domain);
+		const domains = config.domains || []
+		domains.push(this.domain)
 		
 		return {
 			origin: (origin, cb) => {
-				if (!origin) return cb(null, true);
+				if (!origin) return cb(null, true)
 
 				// Check if the origin matches our allowed domains
-				if (isOriginAllowed(origin, domains)) return cb(null, true);
+				if (isOriginAllowed(origin, domains)) return cb(null, true)
 		
-				callback(new Error(`Not allowed by CORS - Only ${domains.join(', ')} are allowed`));
+				callback(new Error(`Not allowed by CORS - Only ${domains.join(', ')} are allowed`))
 			},
 			methods: ['GET', 'POST', 'OPTIONS'],
 			allowedHeaders: ['Content-Type', 'Authorization'],
@@ -66,42 +66,42 @@ class HotServer {
 	}
 
 	initServer() {
-		const app = express();
-		const corsOpts = this.getCors();
-		app.use(cors(corsOpts));
+		const app = express()
+		const corsOpts = this.getCors()
+		app.use(cors(corsOpts))
 		// Add security headers middleware
 		app.use((req, res, next) => {
 			// Add security headers
-			res.setHeader('Access-Control-Allow-Origin', '*');
-			res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-			res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-			res.setHeader('Access-Control-Allow-Credentials', 'true');
-			res.setHeader('X-Content-Type-Options', 'nosniff');
-			next();
-		});
+			res.setHeader('Access-Control-Allow-Origin', '*')
+			res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
+			res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization')
+			res.setHeader('Access-Control-Allow-Credentials', 'true')
+			res.setHeader('X-Content-Type-Options', 'nosniff')
+			next()
+		})
 
 		if (this.config.protocol === 'https') {
-			this.server = https.createServer(this.config.ssl, app);
+			this.server = https.createServer(this.config.ssl, app)
 		} else {
-			this.server = http.createServer(app);
+			this.server = http.createServer(app)
 		}
 
-		Routes(app, this);
+		Routes(app, this)
 
 		this.server.listen(this.config.port, this.config.host, () => {
-			console.info('----------------------------------------------');
-			console.info(`Server is running on: ${this.url}`);
-			console.info('Reload app to connect');
-			console.info('----------------------------------------------');
+			console.info('----------------------------------------------')
+			console.info(`Server is running on: ${this.url}`)
+			console.info('Reload app to connect')
+			console.info('----------------------------------------------')
 		}).on('error', (err) => {
 			if (err.code === 'EACCES') {
-				console.error(`Error: Port ${this.config.port} requires elevated privileges. Please run with administrator rights.`);
+				console.error(`Error: Port ${this.config.port} requires elevated privileges. Please run with administrator rights.`)
 			} else if (err.code === 'EADDRINUSE') {
-				console.error(`Error: Port ${this.config.port} is already in use. Please make sure no other service is using this port.`);
+				console.error(`Error: Port ${this.config.port} is already in use. Please make sure no other service is using this port.`)
 			} else {
-				console.error('Server error:', err);
+				console.error('Server error:', err)
 			}
-		});
+		})
 	}
 
 	restart() {
@@ -109,29 +109,22 @@ class HotServer {
 			return this.init()
 		}
 
-		this.server.close();
+		this.server.close()
 
-		console.info('Server change. Restarting...');
+		console.info('Server change. Restarting...')
 		this.init()
 	}
 
-	dispatch(changes) {
-		const data = {}
+	dispatch (changes) {
+		const clientChanges = {}
 		for (const change of changes) {
-			if (change.path.startsWith(`${this.rootFolder}/src`)) {
-				if (this.config.autoRestart) {
-					return this.restart()
-				}
-			}
-			const clientId = this.matchClient(change.path).id || 'default'
-			if (!data[clientId]) {
-				data[clientId] = []
-			}
+			const client = this.matchClient(change.path)
+			if (!clientChanges[client.id]) clientChanges[client.id] = { client: client, changes: [] }
 
-			data[clientId].push(change)
+			clientChanges[client.id].changes.push(change)
 		}
 
-		this.commit(data)
+		this.commit(clientChanges)
 	}
 
 	matchClient (info, isFile = true) {
@@ -142,21 +135,19 @@ class HotServer {
 		return this.clients.find(c => c.id === id) || {}
 	}
 
-	async commit(clientChanges) {
+	async commit (clientChanges) {
 		for (const clientId in clientChanges) {
-			const changes = []
+			const client = clientChanges[clientId].client
+			const changes = clientChanges[clientId].changes
 
-			const client = this.getClient(clientId)
 			const engine = client?.engine?.back
-			if (engine?.process) {
-				changes.push(...await engine.process(clientChanges[clientId], this))
-			}
 
-			if (!changes.length) {
-				changes.push({changes: {log: clientChanges[clientId]}, filter: info => info.app === 'hot'})
+			let actions = engine?.process ? await engine.process(changes, this) : null
+			if (!actions) {
+				actions = {log: changes}
 			}
 				
-			this.ws.broadcast(changes)
+			this.ws.broadcast(client, actions)
 		}
 	}
 }
