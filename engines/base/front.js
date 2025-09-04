@@ -1,56 +1,4 @@
-const Engine = {
-	name: 'base',
-	opts: {
-		reconnectInterval: 3000,
-	},
-	init: function () {
-		HMR.state = new this.StageManager()
-		HMR.state.init()
-	},
-	process: function (changes) {
-		if (changes[HotEngine.AJAX]) {
-			AP.xRefresh()
-		}
-
-		if (changes[HotEngine.UPDATE_CSS]) {
-			changes[HotEngine.UPDATE_CSS].forEach(change => updateCSS(change))
-		}
-		if (changes[HotEngine.UPDATE_JS]) {
-			changes[HotEngine.UPDATE_JS].forEach(change => {
-				if (!change.code.js) return
-				change.code.js = HMR.state.render.keepCodeState(change.code.js)
-				this.updateJS(change)
-			})
-			HMR.state.render.reload()
-		}
-	},
-	updateJS: function (change) {
-		try {
-			eval(change.code.js || '')
-		} catch (err) {
-			console.error('HOT: Update JS ', err)
-			HMR.overlay(err, {event: change.event, path: change.path, time: change.time}, false)
-		}
-	},
-	updateCSS: function (change) {
-		const targets = HotEngine.getCSSTargets(change.url, change.pattern)
-		if (!targets || !targets.length) return
-		targets.forEach(target => {
-			// for (let rule of sheet.cssRules) {
-			// 	if (rule.media && rule.cssRules) {
-			// 		for (let subRule of rule.cssRules) {
-			// 			if (subRule.selectorText === ".responsive") {
-			// 				subRule.style.display = "flex"
-			// 			}
-			// 		}
-			// 	}
-			// }
-			// stylesheet.insertRule(css, stylesheet.cssRules.length)
-		})
-	}
-}
-
-Engine.StageManager = function () {
+const StageManager = function () {
 	this.render = new StageRender()
 	this.watch = new ObjectWatcher()
 	this.apiCache = new APICache()
@@ -204,7 +152,7 @@ Engine.StageManager = function () {
 	}
 }
 
-Engine.StageRender = function () {
+const StageRender = function () {
 	this._rds = []
 	const run = window.eval
 	this.update = function (js, id = null, type = null) {
@@ -289,7 +237,7 @@ Engine.StageRender = function () {
 	}
 }
 
-Engine.ObjectWatcher = function () {
+const ObjectWatcher = function () {
 	this.objs = {}
 	this.add = (obj, events) => {
 		if (!obj) return
@@ -306,7 +254,7 @@ Engine.ObjectWatcher = function () {
 	this.reset = obj => this.dispatch('reset', obj)
 }
 
-Engine.APICache = function (ttl = 30) {
+const APICache = function (ttl = 30) {
 	this._data = {}
 	this.ttl = ttl*60*1000
 	this.add = (url, body, data) => {
@@ -330,4 +278,54 @@ Engine.APICache = function (ttl = 30) {
 	this.reset = () => this._data = {}
 }
 
-export default Engine
+HotEngine.load({
+	name: 'base',
+	opts: {
+		reconnectInterval: 3000,
+	},
+	init: function () {
+		HMR.state = new StageManager()
+		HMR.state.init()
+	},
+	process: function (changes) {
+		if (changes[HotEngine.AJAX]) {
+			AP.xRefresh()
+		}
+
+		if (changes[HotEngine.UPDATE_CSS]) {
+			changes[HotEngine.UPDATE_CSS].forEach(change => updateCSS(change))
+		}
+		if (changes[HotEngine.UPDATE_JS]) {
+			changes[HotEngine.UPDATE_JS].forEach(change => {
+				if (!change.code.js) return
+				change.code.js = HMR.state.render.keepCodeState(change.code.js)
+				this.updateJS(change)
+			})
+			HMR.state.render.reload()
+		}
+	},
+	updateJS: function (change) {
+		try {
+			eval(change.code.js || '')
+		} catch (err) {
+			console.error('HOT: Update JS ', err)
+			HMR.overlay(err, {event: change.event, path: change.path, time: change.time}, false)
+		}
+	},
+	updateCSS: function (change) {
+		const targets = HotEngine.getCSSTargets(change.url, change.pattern)
+		if (!targets || !targets.length) return
+		targets.forEach(target => {
+			// for (let rule of sheet.cssRules) {
+			// 	if (rule.media && rule.cssRules) {
+			// 		for (let subRule of rule.cssRules) {
+			// 			if (subRule.selectorText === ".responsive") {
+			// 				subRule.style.display = "flex"
+			// 			}
+			// 		}
+			// 	}
+			// }
+			// stylesheet.insertRule(css, stylesheet.cssRules.length)
+		})
+	}
+})

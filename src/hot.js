@@ -15,7 +15,7 @@ import ClientInjecter from './injecter.js'
 import DefaultClient from './client.default.js'
 
 class HotServer {
-	constructor(config) {
+	constructor (config) {
 		this.config = config
 		this.domain = `${config.host}:${config.port}`
 		this.url = `${config.protocol}://${this.domain}`
@@ -23,6 +23,8 @@ class HotServer {
 		this.rootFolder = path.basename(this.root)
 		this.plugins = config.plugins || []
 		this.clients = [DefaultClient, ...config.clients || []]
+
+		this.clientDomains = [this.domain, ...config.domains || [], ...this.clients.map(c => c.domain)].filter(Boolean)
 	}
 
 	init () {
@@ -45,11 +47,10 @@ class HotServer {
 		this.clients.forEach(client => client?.engine?.back?.init && client.engine.back.init(this))
 	}
 
-	getCors() {
+	getCors () {
 		const config = this.config
-		const domains = config.domains || []
-		domains.push(this.domain)
-		
+		const domains = this.clientDomains
+
 		return {
 			origin: (origin, cb) => {
 				if (!origin) return cb(null, true)
@@ -57,18 +58,17 @@ class HotServer {
 				// Check if the origin matches our allowed domains
 				if (isOriginAllowed(origin, domains)) return cb(null, true)
 		
-				callback(new Error(`Not allowed by CORS - Only ${domains.join(', ')} are allowed`))
+				cb(new Error(`Not allowed by CORS - Only ${domains.join(', ')} are allowed`))
 			},
 			methods: ['GET', 'POST', 'OPTIONS'],
 			allowedHeaders: ['Content-Type', 'Authorization'],
-			credentials: true
+			credentials: config.credentials
 		}
 	}
 
-	initServer() {
+	initServer () {
 		const app = express()
-		const corsOpts = this.getCors()
-		app.use(cors(corsOpts))
+		app.use(cors(this.getCors()))
 		// Add security headers middleware
 		app.use((req, res, next) => {
 			// Add security headers
@@ -105,9 +105,7 @@ class HotServer {
 	}
 
 	restart() {
-		if (!this.server) {
-			return this.init()
-		}
+		if (!this.server) return this.init()
 
 		this.server.close()
 

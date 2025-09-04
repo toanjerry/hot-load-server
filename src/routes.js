@@ -23,16 +23,12 @@ export const Routes = (app, hot) => {
 
 	// Dynamic routes that need access to clients
 	app.get('/clients', (req, res) => {
-		const clientsList = Array.from(hot.ws.clients.values()).map(info => info)
+		const clientsList = Array.from(hot.ws.conns.values()).map(info => info)
 
 		res.json(clientsList)
 	})
 	
-	app.get('/clients/remove', (req, res) => {
-		const rs = hot.injecter.remove()
-
-		res.json(rs)
-	})
+	app.get('/clients/remove', (req, res) => res.json(hot.injecter.remove()))
 }
 
 export default router

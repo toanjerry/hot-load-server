@@ -2,9 +2,7 @@ import { spawn, exec } from 'child_process'
 import { minify } from 'terser'
 
 export function isOriginAllowed (origin, domains = []) {
-	if (!origin) {
-		return true
-	}
+	if (!origin) return true
 
 	return domains.some(domain => {
 		if (domain.startsWith('*.')) {

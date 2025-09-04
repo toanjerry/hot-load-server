@@ -1,39 +1,18 @@
-import {md5} from './src/helper/index.js'
-import {getStatus} from './src/helper/file.js'
-
 export default [
-	// 	id: 'default',
-	// 	overlay: true, // show error on client
-	// 	entryPoints: './public/index.html', // file inject code init hot reload, can be path, array of paths, callable recieve client config as param
-	// 	engine: 'default', // engine for resolving hot load, file in server(/src/engine) and client(/public/engine), fallback is engine with name same id
-	// 	inject: { // config for injecting js to client
-	// 		minimize: true // minimize js, css
+	// {
+	// 	id: '', // [String] id client
+	// 	domain: '*.abc.com' // [String] domain
+	// 	overlay: true, // [Bool] show error on client
+	// 	entryPoints: './bundle/index.js', // [String|Array|Callable] file inject code init hot reload, can be path, array of paths, callable recieve client config as param
+	// 	engine: { // engine for resolving hot load
+	// 		back: {}, // [Object] engine for resolving file in back-end
+	// 		front: '', // [String] engine for resolving file in front-end which injected to entry points, can be code as string or path to file contain code  
 	// 	},
-	// 	matchFile: (path, hot) => path.split('/')[0] === hot.rootFolder, // matching checker for file
-	// 	match: (info, hot) => info.app === 'hot' // matching checker for socket client
-	{
-		id: 'base',
-		overlay: true,
-		engine: 'base',
-		inject: {
-			minimize: true,
-			file: 'static/js/a.js' // Should select files of framework cuz of stability of file => prevent from overwritting file (loss injected code) when reload page
-		},
-		apps: ['account'], // add app here
-		cacheDir: '../../data/base', // cache folder
-		entryPoints: (client, hot) => {
-			const apps = client.apps || []
-			const path = `${hot.config.watch.cwd}/${client.inject.file}`.replaceAll('\\', '/')
-			const filename = path.split('/').pop()
-			const fileStatus = getStatus(path)
-			
-			const hash = md5(path) + md5(`${fileStatus.size}-${Math.floor(fileStatus.mtimeMs/1000)}-${fileStatus.uid}`)
-			return apps.flatMap(app => [
-				`${client.cacheDir}/${app}.cache/tcache/${filename}.${hash}vi.cch`,
-				`${client.cacheDir}/${app}.cache/tcache/${filename}.${hash}en.cch`
-			])
-		},
-		matchFile: (path, hot) => path.split('/')[0] !== hot.rootFolder,
-		match: (info, hot) => info.domain === 'base.beta'
-	}
+	// 	inject: { // config for injecting js to client
+	// 		minimize: true // [Bool] minimize js, css
+	// 	},
+	// 	matchFile: (path, hot) => {}, // [callable] matching checker for file
+	// 	match: (info, hot) => {}, // [callable] matching checker for socket client
+	// 	// enjoy to add your props
+	// }
 ]

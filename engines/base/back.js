@@ -1,7 +1,7 @@
 import {compile, cacheLang} from '../../src/helper/base.js'
 import {arrayGroup} from '../../src/helper/array.js'
 
-const BaseEngine = {
+export default {
 	name: 'Base',
 	init: (hot) => cacheLang(hot.getClient('base')?.apps),
 	process: async (changes, hot) => {
@@ -68,5 +68,3 @@ const BaseEngine = {
 		return clientChanges
 	}
 }
-
-export default BaseEngine

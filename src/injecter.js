@@ -38,7 +38,8 @@ export default class ClientInjecter {
 			}
 
 			if (!client.entryPoints || !client.entryPoints.length) {
-				return rewriteContent(`${this.bundleDir}/${client.id}.js`, js, false)
+				rewriteContent(`${this.bundleDir}/${client.id}.js`, js, false)
+				continue
 			}
 
 			// inject js code to each entry point

@@ -16,11 +16,9 @@ class SocketServer {
 	}
 
 	verifyClient({ origin = '' }) {
-		if (origin.includes('localhost') || origin.includes('127.0.0.1')) {
-			return true
-		}
+		if (origin.includes('localhost') || origin.includes('127.0.0.1')) return true
 
-		return isOriginAllowed(origin, this.hot.config.domains || [this.hot.domain])
+		return isOriginAllowed(origin, this.hot.clientDomains)
 	}
 
 	handleClientRegistration(ws, info) {
@@ -36,7 +34,6 @@ class SocketServer {
 		ws.send(JSON.stringify({
 			type: 'config',
 			opts: {
-				id: client.id,
 				overlay: client.overlay || false,
 				inject: client.inject || {},
 			}
@@ -45,15 +42,11 @@ class SocketServer {
 		console.info(`Connected: ${info.origin || 'URL NA'}`)
 	}
 
-	handleClientDisconnection(ws) {
-		this.conns.delete(ws)
-	}
-
 	setupWebSocketServer() {
 		this.wss.on('connection', (ws, req) => {
-			ws.on('message', (message) => {
+			ws.on('message', (msg) => {
 				try {
-					const data = JSON.parse(message)
+					const data = JSON.parse(msg)
 					if (data.type === 'register') {
 						this.handleClientRegistration(ws, data.info || {})
 					}
@@ -62,9 +55,9 @@ class SocketServer {
 				}
 			})
 
-			ws.on('close', () => this.handleClientDisconnection(ws))
-			ws.on('error', (error) => {
-				console.error('WebSocket error:', error)
+			ws.on('close', () => this.conns.delete(ws))
+			ws.on('error', (err) => {
+				console.error('WebSocket error:', err)
 				this.conns.delete(ws)
 			})
 		})
