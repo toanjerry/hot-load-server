@@ -2,7 +2,7 @@
 
 	// folder
 	define("ENV", 0);
-	define("WORK_DIR", dirname(__DIR__, 4));
+	define("WORK_DIR", dirname(__DIR__, 6));
 	define("AP_ROOT", WORK_DIR."\ap");
 	define("GDIR", WORK_DIR.'\base');
 	define("SYS_DIR", GDIR."\system");

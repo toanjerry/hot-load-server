@@ -1,22 +1,21 @@
-
-import { arrayGroup } from '../../src/helper/array.js'
-
 export default {
 	name: "default",
 	process: (changes) => {
-		return arrayGroup(changes, (c) => {
+		const actions = {}
+		for (const c of changes) {
 			const path = c.path
+			const key = 'log'
 			if (path.includes('public')) {
-				if (path.endsWith('.js')) {
-					return 'reload-js'
-				} else if (path.endsWith('css')) {
-					return 'reload-css'
-				} else {
-					return 'reload'
-				}
+				if (path.endsWith('.js')) key = 'reload-js'
+				else if (path.endsWith('css')) key = 'reload-css'
+				else key = 'reload'
 			}
+			
+			if (!actions[key]) actions[key] = []
 
-			return 'log'
-		})
+			actions[key].push(c)
+		}
+	
+		return [{actions, filter: info => info.client_id === 'default'}]
 	}
 }

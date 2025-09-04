@@ -1,13 +1,12 @@
-import {compile, cacheLang} from '../../src/helper/base.js'
-import {arrayGroup} from '../../src/helper/array.js'
+import { arrayGroup, compile, cacheLang} from './util.js'
 
 export default {
 	name: 'Base',
 	init: (hot) => cacheLang(hot.getClient('base')?.apps),
-	process: async (changes, hot) => {
+	process: async (changes) => {
 		changes = arrayGroup(changes, c => c.path.split('/')[0])
 
-		const clientChanges = []
+		const appChanges = []
 		for (const app in changes) {
 			const actionGroup = arrayGroup(changes[app], (c) => {
 				const path = c.path
@@ -29,9 +28,9 @@ export default {
 			})
 
 			if (actionGroup['reload']?.length) {
-				clientChanges.push({
-					actions: {refresh: actionGroup['reload']},
-					filter: info => info.app === app
+				appChanges.push({
+					actions: {reload: actionGroup['reload']},
+					filter: conn => conn.host === `${app}.base.beta`
 				})
 				delete actionGroup['reload']
 				continue
@@ -59,12 +58,12 @@ export default {
 				c.code = src_map[c.path] || {}
 			})
 
-			clientChanges.push({
+			appChanges.push({
 				actions: actionGroup,
-				filter: info => info.app === app
+				filter: conn => conn.host === `${app}.base.beta`
 			})
 		}
 
-		return clientChanges
+		return appChanges
 	}
 }

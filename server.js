@@ -7,11 +7,11 @@ hot.init()
 
 process.on('SIGINT', () => {
 	hot.injecter.remove()
-	hot.ws.broadcast([{actions: {'refresh': []}}])
+	hot.ws.broadcast({ reload: [] })
 	process.exit()
 })
 process.on('SIGTERM', () => {
 	hot.injecter.remove()
-	hot.ws.broadcast([{actions: {'refresh': []}}])
+	hot.ws.broadcast({ reload: [] })
 	process.exit()
 })

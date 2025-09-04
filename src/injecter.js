@@ -1,9 +1,9 @@
 import path from 'path'
 
 import { existsSync, mkdirSync } from 'fs'
-import { injectScript, rewriteContent, getContent, removeScript } from './helper/file.js'
 
-import { minimizeCode } from './helper/index.js'
+import { injectScript, rewriteContent, getContent, removeScript } from './util/file.js'
+import { minimizeCode } from './util/index.js'
 
 export default class ClientInjecter {
 	constructor (hot) {
@@ -11,14 +11,8 @@ export default class ClientInjecter {
 		this.root = this.hot.root
 		this.entries = []
 
-		this.initFolders()
-	}
-
-	initFolders () {
 		this.bundleDir = path.join(this.root, 'public', 'bundle')
-		if (!existsSync(this.bundleDir)) {
-			mkdirSync(this.bundleDir, { recursive: true })
-		}
+		if (!existsSync(this.bundleDir)) mkdirSync(this.bundleDir, { recursive: true })
 	}
 
 	async inject () {

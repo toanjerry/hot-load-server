@@ -8,7 +8,7 @@ import { Routes } from './routes.js'
 
 import SocketServer from './socket.js'
 import FileWatcher from './watcher.js'
-import {isOriginAllowed} from './helper/index.js'
+import {isOriginAllowed} from './util/index.js'
 
 import ClientInjecter from './injecter.js'
 
@@ -136,16 +136,13 @@ class HotServer {
 	async commit (clientChanges) {
 		for (const clientId in clientChanges) {
 			const client = clientChanges[clientId].client
-			const changes = clientChanges[clientId].changes
+			const filesChanges = clientChanges[clientId].changes
 
 			const engine = client?.engine?.back
 
-			let actions = engine?.process ? await engine.process(changes, this) : null
-			if (!actions) {
-				actions = {log: changes}
-			}
-				
-			this.ws.broadcast(client, actions)
+			const changes = engine?.process ? await engine.process(filesChanges, this) : [{actions: {log: filesChanges}}]
+
+			changes.forEach(c => this.ws.broadcast(c.actions, c.filter))
 		}
 	}
 }

@@ -1,5 +1,5 @@
 import { WebSocketServer } from 'ws'
-import { isOriginAllowed } from './helper/index.js'
+import { isOriginAllowed } from './util/index.js'
 
 class SocketServer {
 	constructor(hot) {
@@ -63,11 +63,11 @@ class SocketServer {
 		})
 	}
 	
-	broadcast (client, actions) {
+	broadcast (actions, filter = null) {
 		const payload = JSON.stringify({type: 'change', actions})
 
 		for (const [conn, info] of this.conns) {
-			if (info.client_id && info.client_id !== client.id) continue
+			if (filter && !filter(info)) continue
 
 			if (conn.readyState === WebSocket.OPEN) {
 				conn.send(payload)
