@@ -25,7 +25,7 @@ class SocketServer {
 		const client = this.hot.matchClient(info, false)
 		if (!client.id) return
 		
-		info.client_id = client.id
+		info.clientId = client.id
 		info.connectedAt = new Date()
 
 		this.conns.set(ws, info)

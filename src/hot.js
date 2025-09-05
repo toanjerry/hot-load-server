@@ -12,7 +12,7 @@ import {isOriginAllowed} from './util/index.js'
 
 import ClientInjecter from './injecter.js'
 
-import DefaultClient from './client.default.js'
+import { Config as DefaultClient} from './__engine/index.js'
 
 class HotServer {
 	constructor (config) {
@@ -44,7 +44,7 @@ class HotServer {
 		this.injecter.remove()
 		this.injecter.inject()
 
-		this.clients.forEach(client => client?.engine?.back?.init && client.engine.back.init(this))
+		this.clients.forEach(client => client?.engine?.back?.init && client.engine.back.init(client, this))
 	}
 
 	getCors () {
@@ -138,9 +138,13 @@ class HotServer {
 			const client = clientChanges[clientId].client
 			const filesChanges = clientChanges[clientId].changes
 
+			const log = {log: filesChanges}
+
+			if (clientId !== 'default') this.ws.broadcast(log, conn => conn.clientId === 'default')
+
 			const engine = client?.engine?.back
 
-			const changes = engine?.process ? await engine.process(filesChanges, this) : [{actions: {log: filesChanges}}]
+			const changes = engine?.process ? await engine.process(filesChanges, this) : [{actions: log}]
 
 			changes.forEach(c => this.ws.broadcast(c.actions, c.filter))
 		}

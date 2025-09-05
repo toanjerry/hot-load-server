@@ -16,6 +16,6 @@ export default {
 			actions[key].push(c)
 		}
 	
-		return [{actions, filter: info => info.client_id === 'default'}]
+		return [{actions, filter: info => info.clientId === 'default'}]
 	}
 }
