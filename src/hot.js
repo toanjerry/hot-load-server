@@ -12,9 +12,9 @@ import {isOriginAllowed} from './util/index.js'
 
 import ClientInjecter from './injecter.js'
 
-import { Config as DefaultClient} from './__engine/index.js'
+import { Config as DefaultClient} from './default/client.js'
 
-class HotServer {
+export default class HotServer {
 	constructor (config) {
 		this.config = config
 		this.domain = `${config.host}:${config.port}`
@@ -150,5 +150,3 @@ class HotServer {
 		}
 	}
 }
-
-export default HotServer

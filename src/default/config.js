@@ -1,8 +1,7 @@
 // import fs from 'fs'
 import path from 'path'
 
-import ClientConfig from './client.config.js'
-import QueuePlugin from './src/plugin/queue.js'
+import QueuePlugin from '../plugin/queue.js'
 
 export default {
 	host: 'localhost',
@@ -17,7 +16,7 @@ export default {
 	// 	// ca: fs.readFileSync('./ssl.ca.crt')
 	// },
 	watch: {
-		cwd: path.resolve(process.cwd(), './'),
+		cwd: process.cwd(),
 		files: ['**/*.js', '**/*.css', '**/*.html'],
 		ignored: [
 			// common folder
@@ -30,5 +29,5 @@ export default {
 		ignoreInitial: true,
 	},
 	plugins: [ QueuePlugin() ],
-	clients: ClientConfig,
+	clients: [],
 }

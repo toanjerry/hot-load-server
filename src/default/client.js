@@ -1,5 +1,5 @@
 import path from 'path'
-import Back from './back.js'
+import Back from './engine/back.js'
 
 const Engine = { back: Back, front: path.resolve(import.meta.dirname, 'front.js') }
 
