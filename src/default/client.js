@@ -12,6 +12,6 @@ export default {
 	inject: {
 		minimize: false
 	},
-	matchFile: (path, hot) => path.split('/')[0] === hot.rootFolder,
+	matchFile: (path, hot) => hot.root === hot.watch.cwd || path.split('/')[0] === hot.rootFolder,
 	match: (conn, hot) => conn.origin === hot.url
 }

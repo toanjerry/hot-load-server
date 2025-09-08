@@ -129,7 +129,10 @@ export default class HotServer {
 	}
 
 	matchClient (info, isFile = true) {
-		return this.clients.find(c => isFile ? c?.matchFile(info, this) : c?.match(info, this)) || {}
+		const client = this.clients.find(c => isFile ? c?.matchFile(info, this) : c?.match(info, this)) || {}
+		if (!client.id) console.error('Client: Cannot match', info)
+		
+		return client
 	}
 
 	getClient (id) {

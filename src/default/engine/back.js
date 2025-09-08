@@ -4,11 +4,13 @@ export default {
 		const actions = {}
 		for (const c of changes) {
 			const path = c.path
-			const key = 'log'
+			let key = 'log'
 			if (path.includes('public')) {
 				if (path.endsWith('.js')) key = 'reload-js'
 				else if (path.endsWith('css')) key = 'reload-css'
 				else key = 'reload'
+
+				c.url = path.replace('public/', '')
 			}
 			
 			if (!actions[key]) actions[key] = []

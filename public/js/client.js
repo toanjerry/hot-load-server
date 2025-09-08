@@ -223,7 +223,7 @@ const HotEngine = new function () {
 		const regexp = pattern ? new RegExp(pattern) : null
 		const links = Array.from(document.getElementsByTagName('link'))
 
-		return links.filter(l => l.rel === 'stylesheet' && (url === l.href || (regexp && regexp.test(l.href))))
+		return links.filter(l => l.rel === 'stylesheet' && (url === l.href || l.href === `${window.location.origin}/${url}` || (regexp && regexp.test(l.href))))
 	}
 
 	this.getJSTargets = (url, pattern) => {
@@ -234,7 +234,7 @@ const HotEngine = new function () {
 		const regexp = pattern ? new RegExp(pattern) : null
 		const scripts = Array.from(document.getElementsByTagName('script'))
 
-		return scripts.filter(s => url === s.src || (regexp && regexp.test(s.src)))
+		return scripts.filter(s => url === s.src || s.src === `${window.location.origin}/${url}` (regexp && regexp.test(s.src)))
 	}
 
 	this.reloadJS = (changes) => {
