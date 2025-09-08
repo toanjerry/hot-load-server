@@ -3,6 +3,7 @@ import cors from 'cors'
 import https from 'https'
 import http from 'http'
 import path from 'path'
+import { fileURLToPath } from 'url'
 
 import { Routes } from './routes.js'
 
@@ -12,8 +13,7 @@ import { isOriginAllowed } from './util/index.js'
 
 import ClientInjecter from './injecter.js'
 
-import { Client as DefaultClient} from './default/client.js'
-
+import DefaultClient from './default/client.js'
 import DefaultConfig from './default/config.js'
 
 export default class HotServer {
@@ -22,6 +22,7 @@ export default class HotServer {
 		this.domain = `${this.config.host}:${this.config.port}`
 		this.url = `${this.config.protocol}://${this.domain}`
 		this.root = process.cwd()
+		this.dir = path.dirname(fileURLToPath(import.meta.url))
 		this.rootFolder = path.basename(this.root)
 		this.plugins = this.config.plugins || []
 		this.clients = [DefaultClient, ...this.config.clients || []]

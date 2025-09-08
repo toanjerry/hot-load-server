@@ -1,4 +1,4 @@
-import { WebSocketServer } from 'ws'
+import { WebSocketServer, WebSocket } from 'ws'
 import { isOriginAllowed } from './util/index.js'
 
 class SocketServer {

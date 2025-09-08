@@ -1,11 +1,11 @@
 import path from 'path'
+import { fileURLToPath } from 'url'
+
 import Back from './engine/back.js'
 
-const Engine = { back: Back, front: path.resolve(import.meta.dirname, 'engine', 'front.js') }
+export const Engine = { back: Back, front: path.resolve(path.dirname(fileURLToPath(import.meta.url)), 'engine', 'front.js') }
 
-export default Engine
-
-export const Client = {
+export default {
 	id: 'default',
 	overlay: true,
 	engine: Engine,
