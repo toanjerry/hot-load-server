@@ -1,5 +1,4 @@
 // import fs from 'fs'
-import path from 'path'
 
 import QueuePlugin from '../plugin/queue.js'
 

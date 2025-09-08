@@ -25,6 +25,7 @@
 	},
 	"files": [
 		"src/",
+		"public/",
 		"test.js",
 		"README.md",
 		"LICENSE"
