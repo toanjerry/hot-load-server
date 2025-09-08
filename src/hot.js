@@ -19,14 +19,14 @@ import DefaultConfig from './default/config.js'
 export default class HotServer {
 	constructor (config) {
 		this.config = {...DefaultConfig, ...config}
-		this.domain = `${config.host}:${config.port}`
-		this.url = `${config.protocol}://${this.domain}`
+		this.domain = `${this.config.host}:${this.config.port}`
+		this.url = `${this.config.protocol}://${this.domain}`
 		this.root = process.cwd()
 		this.rootFolder = path.basename(this.root)
-		this.plugins = config.plugins || []
-		this.clients = [DefaultClient, ...config.clients || []]
+		this.plugins = this.config.plugins || []
+		this.clients = [DefaultClient, ...this.config.clients || []]
 
-		this.clientDomains = [this.domain, ...config.domains || [], ...this.clients.map(c => c.domain)].filter(Boolean)
+		this.clientDomains = [this.domain, ...this.config.domains || [], ...this.clients.map(c => c.domain)].filter(Boolean)
 	}
 
 	init () {
