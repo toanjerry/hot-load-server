@@ -1,21 +1,19 @@
 import DefaultConfig from './default/config.js'
 import HotServer from './hot.js'
 
-export function createServer (config = null, onExit = null) {
-	if (!config) config = DefaultConfig
-
-	const hot = new HotServer(config)
+export function createServer (config = null, events = null) {
+	const hot = new HotServer(config || DefaultConfig)
 
 	hot.init()
 
 	process.on('SIGINT', () => {
 		hot.injecter.remove()
-		if (onExit) onExit(hot)
+		if (events && events.onExit) events.onExit(hot)
 		process.exit()
 	})
 	process.on('SIGTERM', () => {
 		hot.injecter.remove()
-		if (onExit) onExit(hot)
+		if (events && events.onExit) events.onExit(hot)
 		process.exit()
 	})
 

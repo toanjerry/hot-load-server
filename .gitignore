@@ -38,7 +38,6 @@ private.json
 # Keep directory structure
 !.gitkeep
 
-client.config.js
 hot.config.js
 public/bundle/
 engines/

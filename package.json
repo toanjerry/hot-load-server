@@ -1,7 +1,7 @@
 {
-	"name": "hotload",
+	"name": "mreload",
 	"version": "1.0.0",
-	"description": "Hot reload server for multiple apps + custom engine for resolving file",
+	"description": "Hot reload server for multiple apps + custom engine for resolving files",
 	"type": "module",
 	"main": "src/index.js",
 	"scripts": {
@@ -21,11 +21,11 @@
 	"license": "MIT",
 	"repository": {
 		"type": "git",
-		"url": "https://github.com/toanjerry/hot-load-server.git"
+		"url": "https://github.com/toanjerry/mreload.git"
 	},
 	"files": [
 		"src/",
-		"server.js",
+		"test.js",
 		"README.md",
 		"LICENSE"
 	]
