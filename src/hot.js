@@ -107,7 +107,7 @@ export default class HotServer {
 		})
 	}
 
-	restart() {
+	restart () {
 		if (!this.server) return this.init()
 
 		this.server.close()

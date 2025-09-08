@@ -1,13 +1,13 @@
 import chokidar from 'chokidar'
 
 class FileWatcher {
-	constructor(hot) {
+	constructor (hot) {
 		this.hot = hot
 		this.config = hot.config.watch || {}
 		this.cwd = this.config.cwd || hot.root
 	}
 
-	start() {
+	start () {
 		this.watcher = chokidar.watch(this.config.files, this.config)
 			.on('add', path => this.dispatch('add', path))
 			.on('change', path => this.dispatch('change', path))
@@ -28,25 +28,12 @@ class FileWatcher {
 		this.hot.dispatch([change])
 	}
 
-	stop() {
-		if (this.watcher) {
-			return
-		}
-
+	stop () {
 		this.watcher.close()
 	}
 
-	// Get watcher instance for testing or manual control
-	getWatcher() {
-		return this.watcher
-	}
-
 	// Update watched patterns
-	updateWatchPatterns(patterns) {
-		if (!this.watcher) {
-			return
-		}
-
+	updateWatchPatterns (patterns) {
 		this.config.files = patterns
 
 		this.watcher.unwatch('**/*')
@@ -54,11 +41,7 @@ class FileWatcher {
 	}
 
 	// Update config
-	updateConfig(key, value) {
-		if (!this.watcher) {
-			return
-		}
-
+	updateConfig (key, value) {
 		this.config[key] = value
 		this.watcher.close()
 		this.start()

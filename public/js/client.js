@@ -1,14 +1,14 @@
 class HotClient {
-	constructor(server) {	
+	constructor (server) {	
 		this.server = server
 	}
 
-	setOpts(opts = {}) {
+	setOpts (opts = {}) {
 		this.opts = {...this.opts, ...opts}
 		return this
 	}
 
-	connect() {
+	connect () {
 		try {
 			this.ws = new WebSocket(this.server)
 			this.setupEvent()
@@ -20,7 +20,7 @@ class HotClient {
 		}
 	}
 
-	setupEvent() {
+	setupEvent () {
 		this.ws.addEventListener('open', () => {
 			this.ws.send(JSON.stringify({
 				type: 'register',
@@ -166,7 +166,7 @@ const HMR = new function () {
 		}
 	}
 
-	this.isEqual = function(o1, o2) {
+	this.isEqual = function (o1, o2) {
 		if (o1 === o2) return true
 		if (typeof o1 !== typeof o2) return false
 

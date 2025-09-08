@@ -2,7 +2,7 @@ import { WebSocketServer, WebSocket } from 'ws'
 import { isOriginAllowed } from './util/index.js'
 
 class SocketServer {
-	constructor(hot) {
+	constructor (hot) {
 		this.hot = hot
 		this.conns = new Map()
 
@@ -15,13 +15,13 @@ class SocketServer {
 		this.setupWebSocketServer()
 	}
 
-	verifyClient({ origin = '' }) {
+	verifyClient ({ origin = '' }) {
 		if (origin.includes('localhost') || origin.includes('127.0.0.1')) return true
 
 		return isOriginAllowed(origin, this.hot.clientDomains)
 	}
 
-	handleClientRegistration(ws, info) {
+	handleClientRegistration (ws, info) {
 		const client = this.hot.matchClient(info, false)
 		if (!client.id) return
 		
@@ -42,7 +42,7 @@ class SocketServer {
 		console.info(`Connected: ${info.origin || 'URL NA'}`)
 	}
 
-	setupWebSocketServer() {
+	setupWebSocketServer () {
 		this.wss.on('connection', (ws, req) => {
 			ws.on('message', (msg) => {
 				try {
