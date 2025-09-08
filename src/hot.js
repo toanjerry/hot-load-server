@@ -12,7 +12,7 @@ import { isOriginAllowed } from './util/index.js'
 
 import ClientInjecter from './injecter.js'
 
-import { Config as DefaultClient} from './default/client.js'
+import { Client as DefaultClient} from './default/client.js'
 
 import DefaultConfig from './default/config.js'
 

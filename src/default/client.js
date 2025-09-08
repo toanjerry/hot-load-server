@@ -1,11 +1,11 @@
 import path from 'path'
 import Back from './engine/back.js'
 
-const Engine = { back: Back, front: path.resolve(import.meta.dirname, 'front.js') }
+const Engine = { back: Back, front: path.resolve(import.meta.dirname, 'engine', 'front.js') }
 
 export default Engine
 
-export const Config = {
+export const Client = {
 	id: 'default',
 	overlay: true,
 	engine: Engine,
