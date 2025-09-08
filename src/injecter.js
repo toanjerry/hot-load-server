@@ -11,12 +11,12 @@ export default class ClientInjecter {
 		this.root = this.hot.root
 		this.entries = []
 
-		this.bundleDir = path.join(this.root, 'public', 'bundle')
+		this.bundleDir = path.resolve(import.meta.dirname, '../public/bundle')
 		if (!existsSync(this.bundleDir)) mkdirSync(this.bundleDir, { recursive: true })
 	}
 
 	async inject () {
-		const code_path = path.join(this.root, 'public/js/client.js')
+		const code_path = path.resolve(import.meta.dirname, '../public/js/client.js')
 		const code = `${getContent(code_path)}\nHMR.connect('${this.hot.config.protocol}://${this.hot.config.host}:${this.hot.config.port}')`
 		const code_min = await minimizeCode(code)
 

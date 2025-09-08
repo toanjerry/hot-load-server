@@ -8,7 +8,7 @@ import { Routes } from './routes.js'
 
 import SocketServer from './socket.js'
 import FileWatcher from './watcher.js'
-import {isOriginAllowed} from './util/index.js'
+import { isOriginAllowed } from './util/index.js'
 
 import ClientInjecter from './injecter.js'
 

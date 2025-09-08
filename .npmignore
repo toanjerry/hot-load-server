@@ -1,6 +1,4 @@
 # Ignore everything except src and essential files
-engines/
-public/
 src/
 !src/
 README.md
