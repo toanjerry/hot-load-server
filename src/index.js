@@ -1,8 +1,7 @@
-import DefaultConfig from './default/config.js'
 import HotServer from './hot.js'
 
-export function createServer (config = null, events = null) {
-	const hot = new HotServer(config || DefaultConfig)
+export function createServer (config = {}, events = null) {
+	const hot = new HotServer(config)
 
 	hot.init()
 

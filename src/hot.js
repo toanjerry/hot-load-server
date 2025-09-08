@@ -14,9 +14,11 @@ import ClientInjecter from './injecter.js'
 
 import { Config as DefaultClient} from './default/client.js'
 
+import DefaultConfig from './default/config.js'
+
 export default class HotServer {
 	constructor (config) {
-		this.config = config
+		this.config = {...DefaultConfig, ...config}
 		this.domain = `${config.host}:${config.port}`
 		this.url = `${config.protocol}://${this.domain}`
 		this.root = process.cwd()
