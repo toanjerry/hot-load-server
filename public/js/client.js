@@ -63,7 +63,7 @@ const HMR = new function () {
 	this.connect = function (server) {
 		this.clientInfo = {
 			protocol: window.location.protocol,
-			host: window.location.host,
+			host: window.location.hostname,
 			port: window.location.port,
 			origin: window.location.origin,
 		}

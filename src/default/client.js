@@ -13,5 +13,5 @@ export default {
 		minimize: false
 	},
 	matchFile: (path, hot) => hot.root === hot.watch.cwd || path.split('/')[0] === hot.rootFolder,
-	match: (conn, hot) => conn.origin === hot.url
+	match: (conn, hot) => conn.port === hot.config.port && (conn.host === hot.config.host || ['localhost', '127.0.0.1'].includes(conn.host))
 }
