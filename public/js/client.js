@@ -64,7 +64,7 @@ const HMR = new function () {
 		this.clientInfo = {
 			protocol: window.location.protocol,
 			host: window.location.hostname,
-			port: window.location.port,
+			port: window.location.port || 80,
 			origin: window.location.origin,
 		}
 
