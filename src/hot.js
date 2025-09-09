@@ -150,7 +150,7 @@ export default class HotServer {
 
 			const engine = client?.engine?.back
 
-			const changes = engine?.process ? await engine.process(filesChanges, this) : [{actions: log}]
+			const changes = engine?.process ? await engine.process(filesChanges, client, this) : [{actions: log}]
 
 			changes.forEach(c => this.ws.broadcast(c.actions, c.filter))
 		}
